@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:hunargah/screens/splash_screen.dart';
 
 void main() {
   runApp(const MainApp());
@@ -13,7 +14,7 @@ class MainApp extends StatelessWidget {
       title: 'HunarGah',
       debugShowCheckedModeBanner: false,
       // Set the first screen that loads
-      // home: SplashScreen(),
+      home: SplashScreen(),
 
       // Define the all routes
       routes: {
