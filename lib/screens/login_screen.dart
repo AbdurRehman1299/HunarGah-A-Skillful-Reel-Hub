@@ -1,3 +1,4 @@
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:hunargah/components/app_bar.dart';
 
@@ -38,7 +39,7 @@ class _LoginScreenState extends State<LoginScreen> {
               width: 80,
               height: 80,
               decoration: BoxDecoration(
-                color: themeColor.withValues(alpha: 0.15),
+                color: Colors.transparent,
                 borderRadius: BorderRadius.circular(20),
                 border: Border.all(
                   color: themeColor.withValues(alpha: 0.5),
@@ -48,8 +49,8 @@ class _LoginScreenState extends State<LoginScreen> {
               child: Center(
                 child: Image.asset(
                   'assets/images/hunargah-logo.png',
-                  width: 45,
-                  height: 45,
+                  width: 55,
+                  height: 55,
                 ),
               ),
             ),
@@ -177,6 +178,109 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                 ),
               ],
+            ),
+
+            const SizedBox(height: 32),
+
+            // -- Login Button --
+            SizedBox(
+              width: double.infinity,
+              height: 50,
+              child: ElevatedButton(
+                onPressed: () {},
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: themeColor,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(25),
+                  ),
+                  elevation: 0,
+                ),
+                child: const Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      'Login',
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                      ),
+                    ),
+                    SizedBox(width: 5),
+                    Icon(Icons.arrow_forward, color: Colors.white, size: 14),
+                  ],
+                ),
+              ),
+            ),
+
+            const SizedBox(height: 16),
+
+            // -- Continue as Guest --
+            TextButton(
+              onPressed: () {},
+              child: const Text(
+                'Continue as Guest',
+                style: TextStyle(
+                  color: Colors.black87,
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+
+            const SizedBox(height: 60),
+
+            // -- Footer Section --
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(Icons.shield_outlined, color: Colors.grey[400], size: 16),
+                const SizedBox(width: 6),
+                Text(
+                  'Sevure Login Powered by HunarGah',
+                  style: TextStyle(color: Colors.grey[500], fontSize: 11),
+                ),
+              ],
+            ),
+
+            const SizedBox(height: 16),
+
+            // RichText for clickable colored links
+            RichText(
+              textAlign: TextAlign.center,
+              text: TextSpan(
+                style: TextStyle(
+                  color: Colors.grey[600],
+                  fontSize: 10,
+                  height: 1.5,
+                ),
+                children: [
+                  const TextSpan(text: 'By signing up, you agree to our '),
+                  TextSpan(
+                    text: 'Terms of Service',
+                    style: TextStyle(
+                      color: themeColor,
+                      fontWeight: FontWeight.bold,
+                    ),
+                    recognizer: TapGestureRecognizer()
+                      ..onTap = () {
+                        // Navigator.pushNamed(context, '/terms');
+                      },
+                  ),
+                  const TextSpan(text: ' and\n'),
+                  TextSpan(
+                    text: 'Privacy Policy',
+                    style: TextStyle(
+                      color: themeColor,
+                      fontWeight: FontWeight.bold,
+                    ),
+                    recognizer: TapGestureRecognizer()
+                      ..onTap = () {
+                        // Navigator.pushNamed(context, '/privacy');+
+                      },
+                  ),
+                ],
+              ),
             ),
           ],
         ),
