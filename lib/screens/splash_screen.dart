@@ -33,14 +33,6 @@ class _SplashScreenState extends State<SplashScreen> {
             Center(
               child: Column(
                 children: [
-                  // Container(
-                  //   width: 110,
-                  //   height: 110,
-                  //   decoration: BoxDecoration(
-                  //     color: themeColor,
-                  //     borderRadius: BorderRadius.circular(24),
-                  //   ),
-                  // ),
                   Image.asset(
                     'assets/images/hunargah-logo.png',
                     width: 110,
