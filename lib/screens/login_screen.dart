@@ -217,7 +217,9 @@ class _LoginScreenState extends State<LoginScreen> {
 
             // -- Continue as Guest --
             TextButton(
-              onPressed: () {},
+              onPressed: () {
+                Navigator.pushReplacementNamed(context, '/onboarding');
+              },
               child: const Text(
                 'Continue as Guest',
                 style: TextStyle(
