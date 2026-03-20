@@ -136,7 +136,7 @@ class _LanguageSelectorScreenState extends State<LanguageSelectorScreen> {
                   onPressed: _selectedLanguage == null
                       ? null
                       : () {
-                          Navigator.pushReplacementNamed(context, '/profile');
+                          Navigator.pushNamed(context, '/skills');
                         },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: _selectedLanguage == null
