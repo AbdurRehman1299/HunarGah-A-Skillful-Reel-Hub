@@ -69,7 +69,7 @@ class _LanguageSelectorScreenState extends State<LanguageSelectorScreen> {
                 themeColor: themeColor,
               ),
 
-              const SizedBox(height: 16,)
+              const SizedBox(height: 16),
 
               _buildLanguageCard(
                 id: 'english',
@@ -80,7 +80,7 @@ class _LanguageSelectorScreenState extends State<LanguageSelectorScreen> {
                 themeColor: themeColor,
               ),
 
-              const SizedBox(height: 16,)
+              const SizedBox(height: 16),
 
               _buildLanguageCard(
                 id: 'punjabi',
@@ -95,17 +95,22 @@ class _LanguageSelectorScreenState extends State<LanguageSelectorScreen> {
 
               // -- Info Banner --
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 12,
+                ),
                 decoration: BoxDecoration(
                   color: Colors.orange.withValues(alpha: 0.05),
                   borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: Colors.orange.withValues(alpha: 0.1)),
+                  border: Border.all(
+                    color: Colors.orange.withValues(alpha: 0.1),
+                  ),
                 ),
                 child: Row(
                   children: [
-                    Icon(Icons.bolt, color: Colors.orange[300], size: 24,),
+                    Icon(Icons.bolt, color: Colors.orange[300], size: 24),
 
-                    const SizedBox(width: 12,),
+                    const SizedBox(width: 12),
 
                     Expanded(
                       child: Text(
@@ -116,23 +121,27 @@ class _LanguageSelectorScreenState extends State<LanguageSelectorScreen> {
                           height: 1.4,
                         ),
                       ),
-                    )
+                    ),
                   ],
                 ),
               ),
 
-              const SizedBox(height: 24,),
+              const SizedBox(height: 24),
 
               // -- Continue Button --
               SizedBox(
                 width: double.infinity,
                 height: 54,
                 child: ElevatedButton(
-                  onPressed: _selectedLanguage == null ? null : () {
-                    Navigator.pushReplacementNamed(context, '/profile');
-                  },
+                  onPressed: _selectedLanguage == null
+                      ? null
+                      : () {
+                          Navigator.pushReplacementNamed(context, '/profile');
+                        },
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: _selectedLanguage == null ? Colors.grey[300] : themeColor,
+                    backgroundColor: _selectedLanguage == null
+                        ? Colors.grey[300]
+                        : themeColor,
                     disabledBackgroundColor: Colors.grey[300],
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(27),
@@ -147,22 +156,26 @@ class _LanguageSelectorScreenState extends State<LanguageSelectorScreen> {
                         style: TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.bold,
-                          color: _selectedLanguage == null ? Colors.grey[500] : Colors.white,
+                          color: _selectedLanguage == null
+                              ? Colors.grey[500]
+                              : Colors.white,
                         ),
                       ),
 
-                      const SizedBox(width: 6,),
+                      const SizedBox(width: 6),
 
                       Icon(
                         Icons.arrow_forward,
-                        color: _selectedLanguage == null ? Colors.grey[500] : Colors.white,
+                        color: _selectedLanguage == null
+                            ? Colors.grey[500]
+                            : Colors.white,
                         size: 18,
-                      )
+                      ),
                     ],
                   ),
                 ),
               ),
-              const SizedBox(height: 32,),
+              const SizedBox(height: 32),
             ],
           ),
         ),
@@ -171,47 +184,112 @@ class _LanguageSelectorScreenState extends State<LanguageSelectorScreen> {
   }
 
   // Reusable Component: Language Selection Card
-Widget _buildLanguageCard({
-  required String id,
-  required String nativeName,
-  required String englishName,
-  required IconData icon,
-  required IconData watermarkIcon,
-  required Color themeColor,
-}) {
-  // Check if the specific card is the one currently selected
-  bool isSelected = _selectedLanguage == id;
+  Widget _buildLanguageCard({
+    required String id,
+    required String nativeName,
+    required String englishName,
+    required IconData icon,
+    required IconData watermarkIcon,
+    required Color themeColor,
+  }) {
+    // Check if the specific card is the one currently selected
+    bool isSelected = _selectedLanguage == id;
 
-  return GestureDetector(
-    onTap: () {
-      setState(() {
-        _selectedLanguage = id;
-      });
-    },
-    child: AnimatedContainer(
-      duration: const Duration(milliseconds: 200),
-      height: 80,
-      decoration: BoxDecoration(
-        color: isSelected ? themeColor.withValues(alpha: 0.05) : Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: isSelected ? themeColor : Colors.grey.withValues(alpha: 0.2),
-          width: isSelected ? 2 : 1,
-        ),
-        boxShadow: isSelected ? [] : [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.03),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
+    return GestureDetector(
+      onTap: () {
+        setState(() {
+          _selectedLanguage = id;
+        });
+      },
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        height: 80,
+        decoration: BoxDecoration(
+          color: isSelected ? themeColor.withValues(alpha: 0.05) : Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(
+            color: isSelected ? themeColor : Colors.grey.withValues(alpha: 0.2),
+            width: isSelected ? 2 : 1,
           ),
-        ],
-      ),
-      // Stack allows to place watermark behind the text
-      child: Stack(
-        
-      ),
-    ),
-  );
-}
-}
+          boxShadow: isSelected
+              ? []
+              : [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.03),
+                    blurRadius: 10,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
+        ),
+        // Stack allows to place watermark behind the text
+        child: Stack(
+          children: [
+            // -- Watermark icon --
+            Positioned(
+              right: -20,
+              bottom: -20,
+              child: Icon(
+                watermarkIcon,
+                size: 100,
+                color: Colors.grey.withValues(alpha: 0.1),
+              ),
+            ),
 
+            // -- Foreground Content --
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16.0),
+              child: Row(
+                children: [
+                  // Small left icon with grey background
+                  Container(
+                    width: 40,
+                    height: 40,
+                    decoration: BoxDecoration(
+                      color: Colors.grey[100],
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Icon(icon, color: Colors.grey[600], size: 24),
+                  ),
+
+                  const SizedBox(width: 16),
+
+                  // -- Language Text --
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        nativeName,
+                        style: const TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.black87,
+                        ),
+                      ),
+
+                      const SizedBox(height: 2),
+
+                      Text(
+                        englishName,
+                        style: TextStyle(
+                          fontSize: 10,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.grey[500],
+                          letterSpacing: 1.0,
+                        ),
+                      ),
+                    ],
+                  ),
+
+                  const Spacer(),
+
+                  if (isSelected) Icon(Icons.check_circle, color: themeColor),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}

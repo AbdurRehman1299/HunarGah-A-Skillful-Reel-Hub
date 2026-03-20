@@ -128,7 +128,9 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
 
                     // -- Next Button --
                     ElevatedButton(
-                      onPressed: () {},
+                      onPressed: () {
+                        Navigator.pushReplacementNamed(context, '/language');
+                      },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: themeColor,
                         shape: RoundedRectangleBorder(
