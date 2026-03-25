@@ -186,10 +186,7 @@ class _SkillsInterestedScreenState extends State<SkillsInterestedScreen> {
                 child: ElevatedButton(
                   onPressed: hasEnoughSkills
                       ? () {
-                          Navigator.pushReplacementNamed(
-                            context,
-                            '/learner-home',
-                          );
+                          Navigator.pushReplacementNamed(context, '/profile');
                         }
                       : null,
                   style: ElevatedButton.styleFrom(
