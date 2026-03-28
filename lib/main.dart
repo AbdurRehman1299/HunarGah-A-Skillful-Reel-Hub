@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:hunargah/screens/language_selector_screen.dart';
+import 'package:hunargah/screens/learner_feed_screen.dart';
 import 'package:hunargah/screens/login_screen.dart';
 import 'package:hunargah/screens/onboarding_screen.dart';
 import 'package:hunargah/screens/profile_picture_screen.dart';
@@ -30,6 +31,7 @@ class MainApp extends StatelessWidget {
         '/language': (context) => const LanguageSelectorScreen(),
         '/skills': (context) => const SkillsInterestedScreen(),
         '/profile': (context) => const ProfilePictureScreen(),
+        '/learner-home': (context) => const LearnerFeedScreen(),
       },
 
       // Set theme to declare color one time

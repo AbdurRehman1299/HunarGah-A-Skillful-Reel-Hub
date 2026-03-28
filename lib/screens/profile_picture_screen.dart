@@ -123,7 +123,7 @@ class _ProfilePictureScreenState extends State<ProfilePictureScreen> {
               const SizedBox(height: 12),
 
               Text(
-                'Put a face to your name. This hels Ustads\nand other learners recognize you.',
+                'Put a face to your name. This helps Ustads\nand other learners recognize you.',
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   fontSize: 14,
