@@ -198,7 +198,7 @@ class _ProfilePictureScreenState extends State<ProfilePictureScreen> {
                 height: 54,
                 child: ElevatedButton(
                   onPressed: () {
-                    Navigator.pushReplacementNamed(context, '/learner-home');
+                    Navigator.pushReplacementNamed(context, '/dashboard');
                   },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: themeColor,
@@ -230,11 +230,11 @@ class _ProfilePictureScreenState extends State<ProfilePictureScreen> {
 
               const SizedBox(height: 16),
 
-              // "Skip for now" Button (Only show if user hasn't icked an image yet)
+              // "Skip for now" Button (Only show if user hasn't picked an image yet)
               if (!hasImage)
                 TextButton(
                   onPressed: () {
-                    Navigator.pop(context);
+                    Navigator.pushReplacementNamed(context, '/dashboard');
                   },
                   child: Text(
                     'Skip for now',
