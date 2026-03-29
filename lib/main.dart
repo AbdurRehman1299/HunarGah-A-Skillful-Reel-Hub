@@ -41,7 +41,6 @@ class MainApp extends StatelessWidget {
       // Set theme to declare color one time
       theme: ThemeData(
         primaryColor: const Color(0xFF00897B), // Learner theme: Teal Green
-        colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFF00897B)),
         useMaterial3: true,
       ),
     );
