@@ -5,6 +5,7 @@ import 'package:hunargah/screens/learner_feed_screen.dart';
 import 'package:hunargah/screens/login_screen.dart';
 import 'package:hunargah/screens/onboarding_screen.dart';
 import 'package:hunargah/screens/profile_picture_screen.dart';
+import 'package:hunargah/screens/signup_screen.dart';
 import 'package:hunargah/screens/skills_interested_screen.dart';
 import 'package:hunargah/screens/splash_screen.dart';
 
@@ -26,6 +27,7 @@ class MainApp extends StatelessWidget {
       // Define the all routes
       routes: {
         '/login': (context) => const LoginScreen(),
+        '/signup': (context) => const SignupScreen(),
         // '/terms': (context) => const TermsServiceScreen(),
         // '/privacy': (context) => const PrivacyPolicyScreen(),
         '/onboarding': (context) => const OnboardingScreen(),
