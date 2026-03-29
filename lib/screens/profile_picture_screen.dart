@@ -59,26 +59,34 @@ class _ProfilePictureScreenState extends State<ProfilePictureScreen> {
 
                 const SizedBox(height: 16),
 
-                ListTile(
-                  leading: const Icon(Icons.camera_alt, color: Colors.teal),
-                  title: const Text('Take a photo'),
-                  onTap: () {
-                    Navigator.pop(context); // Close the bottom sheet
-                    _pickImage(ImageSource.camera);
-                  },
-                ),
-                ListTile(
-                  leading: const Icon(Icons.photo_library, color: Colors.teal),
-                  title: const Text('Choose from Gallery'),
-                  onTap: () {
-                    Navigator.pop(context);
-                    _pickImage(ImageSource.gallery);
-                  },
-                ),
+                cameraListTile(context),
+                galleryListTile(context),
               ],
             ),
           ),
         );
+      },
+    );
+  }
+
+  ListTile galleryListTile(BuildContext context) {
+    return ListTile(
+      leading: const Icon(Icons.photo_library, color: Colors.teal),
+      title: const Text('Choose from Gallery'),
+      onTap: () {
+        Navigator.pop(context);
+        _pickImage(ImageSource.gallery);
+      },
+    );
+  }
+
+  ListTile cameraListTile(BuildContext context) {
+    return ListTile(
+      leading: const Icon(Icons.camera_alt, color: Colors.teal),
+      title: const Text('Take a photo'),
+      onTap: () {
+        Navigator.pop(context); // Close the bottom sheet
+        _pickImage(ImageSource.camera);
       },
     );
   }
@@ -110,123 +118,23 @@ class _ProfilePictureScreenState extends State<ProfilePictureScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              // Heading
-              const Text(
-                'Add a Profile Picture',
-                style: TextStyle(
-                  fontSize: 24,
-                  fontWeight: FontWeight.w800,
-                  color: Colors.black87,
-                ),
-              ),
+              // -- Heading Section --
+              headerSection(),
 
               const SizedBox(height: 12),
 
-              Text(
-                'Put a face to your name. This helps Ustads\nand other learners recognize you.',
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontSize: 14,
-                  color: Colors.grey[600],
-                  height: 1.5,
-                ),
-              ),
+              descriptionSection(),
 
               const SizedBox(height: 48),
 
-              // Avatar Section
-              GestureDetector(
-                onTap: _showImageSourceBottomSheet,
-                child: Stack(
-                  children: [
-                    // The main image circular image
-                    Container(
-                      width: 140,
-                      height: 140,
-                      decoration: BoxDecoration(
-                        color: themeColor.withValues(alpha: .1),
-                        shape: BoxShape.circle,
-                        border: Border.all(
-                          color: hasImage ? themeColor : Colors.transparent,
-                          width: 3,
-                        ),
-                        image: hasImage
-                            ? DecorationImage(
-                                image: FileImage(_profileImage!),
-                                fit: BoxFit.cover,
-                              )
-                            : null,
-                      ),
-
-                      child: !hasImage
-                          ? Icon(
-                              Icons.person,
-                              size: 80,
-                              color: themeColor.withValues(alpha: 0.5),
-                            )
-                          : null,
-                    ),
-
-                    // The little Camera Badge at the bottom right
-                    Positioned(
-                      bottom: 0,
-                      right: 0,
-                      child: Container(
-                        padding: const EdgeInsets.all(1),
-                        decoration: BoxDecoration(
-                          color: themeColor,
-                          shape: BoxShape.circle,
-                          border: Border.all(color: Colors.white, width: 3),
-                        ),
-                        child: Icon(
-                          hasImage ? Icons.edit : Icons.camera_alt,
-                          color: Colors.white,
-                          size: 20,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
+              // -- Avatar Section --
+              avatarSection(themeColor, hasImage),
 
               const Spacer(),
 
-              // Button Section
+              // -- Button Section --
               // Primary "Continue" button
-              SizedBox(
-                width: double.infinity,
-                height: 54,
-                child: ElevatedButton(
-                  onPressed: () {
-                    Navigator.pushReplacementNamed(context, '/dashboard');
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: themeColor,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(27),
-                    ),
-                    elevation: 0,
-                  ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Text(
-                        hasImage ? 'Save & Continue' : 'Continue',
-                        style: const TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.white,
-                        ),
-                      ),
-                      const Icon(
-                        Icons.arrow_forward,
-                        color: Colors.white,
-                        size: 18,
-                      ),
-                    ],
-                  ),
-                ),
-              ),
+              buttonSection(context, themeColor, hasImage),
 
               const SizedBox(height: 16),
 
@@ -249,6 +157,118 @@ class _ProfilePictureScreenState extends State<ProfilePictureScreen> {
               if (hasImage) const SizedBox(height: 48),
             ],
           ),
+        ),
+      ),
+    );
+  }
+
+  Text descriptionSection() {
+    return Text(
+      'Put a face to your name. This helps Ustads\nand other learners recognize you.',
+      textAlign: TextAlign.center,
+      style: TextStyle(fontSize: 14, color: Colors.grey[600], height: 1.5),
+    );
+  }
+
+  Text headerSection() {
+    return const Text(
+      'Add a Profile Picture',
+      style: TextStyle(
+        fontSize: 24,
+        fontWeight: FontWeight.w800,
+        color: Colors.black87,
+      ),
+    );
+  }
+
+  GestureDetector avatarSection(Color themeColor, bool hasImage) {
+    return GestureDetector(
+      onTap: _showImageSourceBottomSheet,
+      child: Stack(
+        children: [
+          // The main image circular image
+          Container(
+            width: 140,
+            height: 140,
+            decoration: BoxDecoration(
+              color: themeColor.withValues(alpha: .1),
+              shape: BoxShape.circle,
+              border: Border.all(
+                color: hasImage ? themeColor : Colors.transparent,
+                width: 3,
+              ),
+              image: hasImage
+                  ? DecorationImage(
+                      image: FileImage(_profileImage!),
+                      fit: BoxFit.cover,
+                    )
+                  : null,
+            ),
+
+            child: !hasImage
+                ? Icon(
+                    Icons.person,
+                    size: 80,
+                    color: themeColor.withValues(alpha: 0.5),
+                  )
+                : null,
+          ),
+
+          // The little Camera Badge at the bottom right
+          Positioned(
+            bottom: 0,
+            right: 0,
+            child: Container(
+              padding: const EdgeInsets.all(1),
+              decoration: BoxDecoration(
+                color: themeColor,
+                shape: BoxShape.circle,
+                border: Border.all(color: Colors.white, width: 3),
+              ),
+              child: Icon(
+                hasImage ? Icons.edit : Icons.camera_alt,
+                color: Colors.white,
+                size: 20,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  SizedBox buttonSection(
+    BuildContext context,
+    Color themeColor,
+    bool hasImage,
+  ) {
+    return SizedBox(
+      width: double.infinity,
+      height: 54,
+      child: ElevatedButton(
+        onPressed: () {
+          Navigator.pushReplacementNamed(context, '/dashboard');
+        },
+        style: ElevatedButton.styleFrom(
+          backgroundColor: themeColor,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(27),
+          ),
+          elevation: 0,
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text(
+              hasImage ? 'Save & Continue' : 'Continue',
+              style: const TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+                color: Colors.white,
+              ),
+            ),
+            const Icon(Icons.arrow_forward, color: Colors.white, size: 18),
+          ],
         ),
       ),
     );
