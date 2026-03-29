@@ -66,27 +66,7 @@ class _SkillsInterestedScreenState extends State<SkillsInterestedScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               // -- Header Section --
-              RichText(
-                text: TextSpan(
-                  style: const TextStyle(
-                    fontSize: 22,
-                    fontWeight: FontWeight.w800,
-                    color: Colors.black87,
-                    fontFamily: 'Roboto',
-                  ),
-                  children: [
-                    const TextSpan(text: 'What skills are you '),
-                    TextSpan(
-                      text: 'interested',
-                      style: TextStyle(
-                        color: themeColor,
-                        fontStyle: FontStyle.italic,
-                      ),
-                    ),
-                    const TextSpan(text: ' in?'),
-                  ],
-                ),
-              ),
+              headerSection(themeColor),
 
               const SizedBox(height: 8),
 
@@ -121,122 +101,147 @@ class _SkillsInterestedScreenState extends State<SkillsInterestedScreen> {
               const SizedBox(height: 32),
 
               // -- Daily Inspiration Banner --
-              Container(
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: themeColor.withValues(alpha: 0.08),
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: themeColor.withValues(alpha: 0.3)),
-                ),
-                child: Row(
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.all(8),
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        border: Border.all(
-                          color: themeColor.withValues(alpha: 0.5),
-                        ),
-                      ),
-                      child: Icon(
-                        Icons.lightbulb_outline,
-                        color: themeColor,
-                        size: 20,
-                      ),
-                    ),
-
-                    const SizedBox(width: 12),
-
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Daily Inspiration',
-                            style: TextStyle(
-                              color: themeColor,
-                              fontWeight: FontWeight.bold,
-                              fontSize: 12,
-                            ),
-                          ),
-
-                          const SizedBox(height: 4),
-
-                          Text(
-                            "We'll notify you when your favorite\nUstads post new lessons.",
-                            style: TextStyle(
-                              color: Colors.grey[600],
-                              fontSize: 11,
-                              height: 1.3,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-              ),
+              dailyInspirationBanner(themeColor),
 
               const SizedBox(height: 24),
 
               // -- Start Learning Button --
-              SizedBox(
-                width: double.infinity,
-                height: 54,
-                child: ElevatedButton(
-                  onPressed: hasEnoughSkills
-                      ? () {
-                          Navigator.pushReplacementNamed(context, '/profile');
-                        }
-                      : null,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: hasEnoughSkills
-                        ? themeColor
-                        : Colors.grey[300],
-                    disabledBackgroundColor: Colors.grey[300],
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(27),
-                    ),
-                    elevation: 0,
-                  ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Text(
-                        'Start Learning',
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                          color: hasEnoughSkills
-                              ? Colors.white
-                              : Colors.grey[500],
-                        ),
-                      ),
-                      Icon(
-                        Icons.arrow_forward,
-                        color: hasEnoughSkills
-                            ? Colors.white
-                            : Colors.grey[500],
-                        size: 18,
-                      ),
-                    ],
-                  ),
-                ),
-              ),
+              startLearningButton(hasEnoughSkills, context, themeColor),
 
               const SizedBox(height: 16),
 
               // -- Footer Text --
-              Center(
-                child: Text(
-                  'You can change your interest anytime in Settings.',
-                  style: TextStyle(color: Colors.grey[600], fontSize: 10),
-                ),
-              ),
+              footerText(),
 
               const SizedBox(height: 24),
             ],
           ),
+        ),
+      ),
+    );
+  }
+
+  RichText headerSection(Color themeColor) {
+    return RichText(
+      text: TextSpan(
+        style: const TextStyle(
+          fontSize: 22,
+          fontWeight: FontWeight.w800,
+          color: Colors.black87,
+          fontFamily: 'Roboto',
+        ),
+        children: [
+          const TextSpan(text: 'What skills are you '),
+          TextSpan(
+            text: 'interested',
+            style: TextStyle(color: themeColor, fontStyle: FontStyle.italic),
+          ),
+          const TextSpan(text: ' in?'),
+        ],
+      ),
+    );
+  }
+
+  Container dailyInspirationBanner(Color themeColor) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: themeColor.withValues(alpha: 0.08),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: themeColor.withValues(alpha: 0.3)),
+      ),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              border: Border.all(color: themeColor.withValues(alpha: 0.5)),
+            ),
+            child: Icon(Icons.lightbulb_outline, color: themeColor, size: 20),
+          ),
+
+          const SizedBox(width: 12),
+
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Daily Inspiration',
+                  style: TextStyle(
+                    color: themeColor,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 12,
+                  ),
+                ),
+
+                const SizedBox(height: 4),
+
+                Text(
+                  "We'll notify you when your favorite\nUstads post new lessons.",
+                  style: TextStyle(
+                    color: Colors.grey[600],
+                    fontSize: 11,
+                    height: 1.3,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Center footerText() {
+    return Center(
+      child: Text(
+        'You can change your interest anytime in Settings.',
+        style: TextStyle(color: Colors.grey[600], fontSize: 10),
+      ),
+    );
+  }
+
+  SizedBox startLearningButton(
+    bool hasEnoughSkills,
+    BuildContext context,
+    Color themeColor,
+  ) {
+    return SizedBox(
+      width: double.infinity,
+      height: 54,
+      child: ElevatedButton(
+        onPressed: hasEnoughSkills
+            ? () {
+                Navigator.pushReplacementNamed(context, '/profile');
+              }
+            : null,
+        style: ElevatedButton.styleFrom(
+          backgroundColor: hasEnoughSkills ? themeColor : Colors.grey[300],
+          disabledBackgroundColor: Colors.grey[300],
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(27),
+          ),
+          elevation: 0,
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text(
+              'Start Learning',
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+                color: hasEnoughSkills ? Colors.white : Colors.grey[500],
+              ),
+            ),
+            Icon(
+              Icons.arrow_forward,
+              color: hasEnoughSkills ? Colors.white : Colors.grey[500],
+              size: 18,
+            ),
+          ],
         ),
       ),
     );
