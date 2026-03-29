@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'dart:async';
-
 import 'package:smooth_page_indicator/smooth_page_indicator.dart';
 
 class OnboardingScreen extends StatefulWidget {
@@ -81,92 +80,95 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
           ),
 
           // -- Header Area (Skip Button) --
-          SafeArea(
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.end,
-              children: [
-                Padding(
-                  padding: const EdgeInsets.only(top: 8.0, right: 16.0),
-                  child: TextButton(
-                    onPressed: () {},
-                    child: const Text(
-                      'Skip',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 14,
-                      ),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
+          headerSection(),
 
           // -- Footer Area (Indicator and Next Button) --
-          Align(
-            alignment: Alignment.bottomCenter,
-            child: SafeArea(
-              child: Padding(
-                padding: const EdgeInsets.all(24.0),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    // -- Smooth Page Indicator --
-                    SmoothPageIndicator(
-                      controller: _pageController,
-                      count: _pages.length,
-                      effect: ExpandingDotsEffect(
-                        activeDotColor: themeColor,
-                        dotColor: Colors.white.withValues(alpha: 0.5),
-                        dotHeight: 8,
-                        dotWidth: 8,
-                        expansionFactor: 3,
-                        spacing: 8,
-                      ),
-                    ),
+          footerSection(themeColor, context),
+        ],
+      ),
+    );
+  }
 
-                    // -- Next Button --
-                    ElevatedButton(
-                      onPressed: () {
-                        Navigator.pushReplacementNamed(context, '/language');
-                      },
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: themeColor,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(20),
-                        ),
-                        elevation: 0,
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 24,
-                          vertical: 12,
-                        ),
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          const Text(
-                            'Next',
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontWeight: FontWeight.bold,
-                              fontSize: 14,
-                            ),
-                          ),
-                          const SizedBox(width: 8),
-                          Icon(
-                            Icons.arrow_forward,
-                            color: Colors.white,
-                            size: 18,
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
+  SafeArea headerSection() {
+    return SafeArea(
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.end,
+        children: [
+          Padding(
+            padding: const EdgeInsets.only(top: 8.0, right: 16.0),
+            child: TextButton(
+              onPressed: () {},
+              child: const Text(
+                'Skip',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 14,
                 ),
               ),
             ),
           ),
+        ],
+      ),
+    );
+  }
+
+  Align footerSection(Color themeColor, BuildContext context) {
+    return Align(
+      alignment: Alignment.bottomCenter,
+      child: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.all(24.0),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              // -- Smooth Page Indicator --
+              SmoothPageIndicator(
+                controller: _pageController,
+                count: _pages.length,
+                effect: ExpandingDotsEffect(
+                  activeDotColor: themeColor,
+                  dotColor: Colors.white.withValues(alpha: 0.5),
+                  dotHeight: 8,
+                  dotWidth: 8,
+                  expansionFactor: 3,
+                  spacing: 8,
+                ),
+              ),
+
+              // -- Next Button --
+              nextButton(context, themeColor),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  ElevatedButton nextButton(BuildContext context, Color themeColor) {
+    return ElevatedButton(
+      onPressed: () {
+        Navigator.pushReplacementNamed(context, '/language');
+      },
+      style: ElevatedButton.styleFrom(
+        backgroundColor: themeColor,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        elevation: 0,
+        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const Text(
+            'Next',
+            style: TextStyle(
+              color: Colors.white,
+              fontWeight: FontWeight.bold,
+              fontSize: 14,
+            ),
+          ),
+          const SizedBox(width: 8),
+          Icon(Icons.arrow_forward, color: Colors.white, size: 18),
         ],
       ),
     );
