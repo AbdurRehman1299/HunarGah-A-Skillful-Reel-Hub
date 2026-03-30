@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:hunargah/components/bottom_bar.dart';
+import 'package:hunargah/screens/explore_screen.dart';
 import 'package:hunargah/screens/learner_feed_screen.dart';
 
 class MainDashboard extends StatefulWidget {
@@ -13,7 +14,10 @@ class _MainDashboardState extends State<MainDashboard> {
   int _currentIndex = 0;
 
   // List of Screens of Bottom Nav tabs
-  final List<Widget> _screens = [const LearnerFeedScreen()];
+  final List<Widget> _screens = [
+    const LearnerFeedScreen(),
+    const ExploreScreen(),
+  ];
 
   @override
   Widget build(BuildContext context) {
