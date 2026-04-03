@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:hunargah/components/bottom_bar.dart';
+import 'package:hunargah/screens/category_screen.dart';
 import 'package:hunargah/screens/explore_screen.dart';
 import 'package:hunargah/screens/learner_feed_screen.dart';
 
@@ -17,6 +18,7 @@ class _MainDashboardState extends State<MainDashboard> {
   final List<Widget> _screens = [
     const LearnerFeedScreen(),
     const ExploreScreen(),
+    const CategoryScreen(),
   ];
 
   @override
