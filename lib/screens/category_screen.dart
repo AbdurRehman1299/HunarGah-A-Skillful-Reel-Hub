@@ -19,7 +19,9 @@ class _CategoryScreenState extends State<CategoryScreen> {
         title: 'Categories',
         actions: [
           IconButton(
-            onPressed: () {},
+            onPressed: () {
+              Navigator.pushNamed(context, '/notification');
+            },
             icon: const Icon(Icons.notifications_none, color: Colors.black),
           ),
           const SizedBox(width: 8),
