@@ -45,37 +45,12 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // -- Filter Chips --
-            SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
-              padding: const EdgeInsets.symmetric(
-                horizontal: 16.0,
-                vertical: 8.0,
-              ),
-              child: Row(
-                children: [
-                  _buildFilterChip('All'),
-                  _buildFilterChip('Courses'),
-                  _buildFilterChip('Job Alert'),
-                  _buildFilterChip('System'),
-                ],
-              ),
-            ),
+            filterChips(),
 
             const SizedBox(height: 16),
 
             // -- Recent Alerts Section --
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16.0),
-              child: Text(
-                'RECENT ALERTS',
-                style: TextStyle(
-                  fontSize: 11,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.grey[600],
-                  letterSpacing: 0.5,
-                ),
-              ),
-            ),
+            recentAlertSection(),
 
             const SizedBox(height: 8),
 
@@ -97,18 +72,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
             Divider(color: Colors.grey[200], height: 32, thickness: 1),
 
             // -- Earlier Section --
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16.0),
-              child: Text(
-                'EARLIER',
-                style: TextStyle(
-                  fontSize: 11,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.grey[600],
-                  letterSpacing: 0.5,
-                ),
-              ),
-            ),
+            earlierSection(),
 
             const SizedBox(height: 8),
 
@@ -137,42 +101,91 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
             const SizedBox(height: 40),
 
             // -- All Caught Up Footer --
-            Center(
-              child: Column(
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      border: Border.all(color: Colors.grey[300]!, width: 1.5),
-                    ),
-                    child: Icon(Icons.check, color: Colors.grey[400], size: 24),
-                  ),
-
-                  const SizedBox(height: 16),
-
-                  Text(
-                    'You\'re all caught up',
-                    style: TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.grey[400],
-                    ),
-                  ),
-
-                  const SizedBox(height: 4),
-
-                  Text(
-                    'Check back later for new updates',
-                    style: TextStyle(fontSize: 11, color: Colors.grey[400]),
-                  ),
-                ],
-              ),
-            ),
+            footerSection(),
 
             const SizedBox(height: 40),
           ],
         ),
+      ),
+    );
+  }
+
+  Center footerSection() {
+    return Center(
+      child: Column(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              border: Border.all(color: Colors.grey[300]!, width: 1.5),
+            ),
+            child: Icon(Icons.check, color: Colors.grey[400], size: 24),
+          ),
+
+          const SizedBox(height: 16),
+
+          Text(
+            'You\'re all caught up',
+            style: TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.bold,
+              color: Colors.grey[400],
+            ),
+          ),
+
+          const SizedBox(height: 4),
+
+          Text(
+            'Check back later for new updates',
+            style: TextStyle(fontSize: 11, color: Colors.grey[400]),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Padding earlierSection() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16.0),
+      child: Text(
+        'EARLIER',
+        style: TextStyle(
+          fontSize: 11,
+          fontWeight: FontWeight.bold,
+          color: Colors.grey[600],
+          letterSpacing: 0.5,
+        ),
+      ),
+    );
+  }
+
+  Padding recentAlertSection() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16.0),
+      child: Text(
+        'RECENT ALERTS',
+        style: TextStyle(
+          fontSize: 11,
+          fontWeight: FontWeight.bold,
+          color: Colors.grey[600],
+          letterSpacing: 0.5,
+        ),
+      ),
+    );
+  }
+
+  SingleChildScrollView filterChips() {
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+      child: Row(
+        children: [
+          _buildFilterChip('All'),
+          _buildFilterChip('Courses'),
+          _buildFilterChip('Job Alert'),
+          _buildFilterChip('System'),
+        ],
       ),
     );
   }
@@ -223,89 +236,98 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // Icon Box
-          Container(
-            width: 40,
-            height: 40,
-            decoration: BoxDecoration(
-              color: const Color(0xFFE0F2F1),
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: Icon(
-              Icons.menu_book,
-              color: themeColor,
-              size: 20,
-            ), // Course Icon
-          ),
+          iconBox(themeColor),
 
           const SizedBox(width: 12),
 
           // Text Content
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Expanded(
-                      child: Text(
-                        title,
-                        style: const TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 13,
-                          color: Colors.black87,
-                        ),
-                      ),
-                    ),
-                    if (isUnread) ...[
-                      const SizedBox(width: 8),
-                      Container(
-                        margin: const EdgeInsets.only(top: 4),
-                        width: 8,
-                        height: 8,
-                        decoration: BoxDecoration(
-                          color: Colors.green,
-                          shape: BoxShape.circle,
-                        ),
-                      ),
-                    ],
-                  ],
-                ),
+          notificationContent(title, isUnread, description, time),
+        ],
+      ),
+    );
+  }
 
-                const SizedBox(height: 4),
-
-                Text(
-                  description,
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: Colors.grey[600],
-                    height: 1.4,
+  Expanded notificationContent(
+    String title,
+    bool isUnread,
+    String description,
+    String time,
+  ) {
+    return Expanded(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(
+                child: Text(
+                  title,
+                  style: const TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 13,
+                    color: Colors.black87,
                   ),
                 ),
-
-                const SizedBox(height: 8),
-
-                Row(
-                  children: [
-                    Icon(Icons.access_time, size: 12, color: Colors.grey[500]),
-
-                    const SizedBox(width: 4),
-
-                    Text(
-                      time,
-                      style: TextStyle(
-                        fontSize: 10,
-                        color: Colors.grey[500],
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ],
+              ),
+              if (isUnread) ...[
+                const SizedBox(width: 8),
+                Container(
+                  margin: const EdgeInsets.only(top: 4),
+                  width: 8,
+                  height: 8,
+                  decoration: BoxDecoration(
+                    color: Colors.green,
+                    shape: BoxShape.circle,
+                  ),
                 ),
               ],
+            ],
+          ),
+
+          const SizedBox(height: 4),
+
+          Text(
+            description,
+            style: TextStyle(
+              fontSize: 12,
+              color: Colors.grey[600],
+              height: 1.4,
             ),
+          ),
+
+          const SizedBox(height: 8),
+
+          Row(
+            children: [
+              Icon(Icons.access_time, size: 12, color: Colors.grey[500]),
+
+              const SizedBox(width: 4),
+
+              Text(
+                time,
+                style: TextStyle(
+                  fontSize: 10,
+                  color: Colors.grey[500],
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ],
           ),
         ],
       ),
+    );
+  }
+
+  Container iconBox(Color themeColor) {
+    return Container(
+      width: 40,
+      height: 40,
+      decoration: BoxDecoration(
+        color: const Color(0xFFE0F2F1),
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Icon(Icons.menu_book, color: themeColor, size: 20), // Course Icon
     );
   }
 }
