@@ -7,6 +7,7 @@ import 'package:hunargah/screens/profile_picture_screen.dart';
 import 'package:hunargah/screens/signup_screen.dart';
 import 'package:hunargah/screens/skills_interested_screen.dart';
 import 'package:hunargah/screens/splash_screen.dart';
+import 'package:hunargah/screens/ustad_profile_screen.dart';
 
 void main() {
   runApp(const MainApp());
@@ -34,6 +35,7 @@ class MainApp extends StatelessWidget {
         '/skills': (context) => const SkillsInterestedScreen(),
         '/profile': (context) => const ProfilePictureScreen(),
         '/dashboard': (context) => const MainDashboard(),
+        '/ustad-profile': (context) => const UstadProfileScreen(),
       },
 
       // Set theme to declare color one time

@@ -227,7 +227,9 @@ class _ExploreScreenState extends State<ExploreScreen> {
 
   OutlinedButton profileButton(Color themeColor) {
     return OutlinedButton(
-      onPressed: () {},
+      onPressed: () {
+        Navigator.pushNamed(context, '/ustad-profile');
+      },
       style: OutlinedButton.styleFrom(
         side: BorderSide(color: themeColor),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
