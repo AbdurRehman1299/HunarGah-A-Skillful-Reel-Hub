@@ -10,7 +10,7 @@ class VideoPlayerScreen extends StatefulWidget {
 
 class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
   late VideoPlayerController _controller;
-  bool _showControls = true;
+  final bool _showControls = true;
 
   @override
   void initState() {
@@ -79,148 +79,150 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
 
             // -- Video Player --
             if (_controller.value.isInitialized)
-              GestureDetector(
-                onTap: () {
-                  setState(() {
-                    _showControls != _showControls;
-                  });
-                },
-                child: AspectRatio(
-                  aspectRatio: _controller.value.aspectRatio,
-                  child: Stack(
-                    alignment: Alignment.bottomCenter,
-                    children: [
-                      // The actual video
-                      VideoPlayer(_controller),
-
-                      // The Custom UI Overlay
-                      if (_showControls) _buildControlsOverlay(),
-                    ],
-                  ),
-                ),
-              )
+              videoControllers()
             else
               Center(child: CircularProgressIndicator(color: themeColor)),
 
             // -- Interactive Text & Quiz Card --
-            Expanded(
-              flex: 2,
-              child: Padding(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 24.0,
-                  vertical: 16.0,
+            interactiveTextAndQuizCard(themeColor),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Expanded interactiveTextAndQuizCard(Color themeColor) {
+    return Expanded(
+      flex: 2,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 16.0),
+        child: Column(
+          children: [
+            const SizedBox(height: 16),
+            // Interactive Learning Mode Pill
+            interactiveLearningPill(themeColor),
+
+            const SizedBox(height: 12),
+            // Subtitle
+            experienceInfo(),
+
+            const Spacer(),
+
+            // Quiz Card
+            quizCard(themeColor),
+
+            const SizedBox(height: 16),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Container interactiveLearningPill(Color themeColor) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+      decoration: BoxDecoration(
+        border: Border.all(color: themeColor.withValues(alpha: 0.5)),
+        borderRadius: BorderRadius.circular(20),
+        color: themeColor.withValues(alpha: 0.1),
+      ),
+      child: Text(
+        'Interactive Learning Mode',
+        style: TextStyle(
+          color: themeColor,
+          fontSize: 11,
+          fontWeight: FontWeight.bold,
+        ),
+      ),
+    );
+  }
+
+  Container quizCard(Color themeColor) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Row(
+        children: [
+          const Icon(Icons.help_outline, color: Colors.black87, size: 28),
+
+          const SizedBox(width: 16),
+
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'Quick Check!',
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 14,
+                    color: Colors.black,
+                  ),
                 ),
-                child: Column(
-                  children: [
-                    const SizedBox(height: 16),
-                    // Interactive Learning Mode Pill
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 16,
-                        vertical: 6,
-                      ),
-                      decoration: BoxDecoration(
-                        border: Border.all(
-                          color: themeColor.withValues(alpha: 0.5),
-                        ),
-                        borderRadius: BorderRadius.circular(20),
-                        color: themeColor.withValues(alpha: 0.1),
-                      ),
-                      child: Text(
-                        'Interactive Learning Mode',
-                        style: TextStyle(
-                          color: themeColor,
-                          fontSize: 11,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ),
 
-                    const SizedBox(height: 12),
-                    // Subtitle
-                    Text(
-                      'Landscape view optimized for vertical learning.\nRotate your device for full experience.',
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                        color: Colors.grey[500],
-                        fontSize: 11,
-                        fontStyle: FontStyle.italic,
-                        height: 1.5,
-                      ),
-                    ),
+                const SizedBox(height: 4),
 
-                    const Spacer(),
-
-                    // Quiz Card
-                    Container(
-                      padding: const EdgeInsets.all(16),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(16),
-                      ),
-                      child: Row(
-                        children: [
-                          const Icon(
-                            Icons.help_outline,
-                            color: Colors.black87,
-                            size: 28,
-                          ),
-
-                          const SizedBox(width: 16),
-
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                const Text(
-                                  'Quick Check!',
-                                  style: TextStyle(
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 14,
-                                    color: Colors.black,
-                                  ),
-                                ),
-
-                                const SizedBox(height: 4),
-
-                                Text(
-                                  'Ready for 2-minute quiz?',
-                                  style: TextStyle(
-                                    fontSize: 11,
-                                    color: Colors.grey[600],
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                          ElevatedButton(
-                            onPressed: () {},
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: themeColor,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 20,
-                                vertical: 10,
-                              ),
-                            ),
-                            child: const Text(
-                              'Start',
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-                  ],
+                Text(
+                  'Ready for 2-minute quiz?',
+                  style: TextStyle(fontSize: 11, color: Colors.grey[600]),
                 ),
-              ),
+              ],
             ),
+          ),
+          startButton(themeColor),
+        ],
+      ),
+    );
+  }
+
+  ElevatedButton startButton(Color themeColor) {
+    return ElevatedButton(
+      onPressed: () {},
+      style: ElevatedButton.styleFrom(
+        backgroundColor: themeColor,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+      ),
+      child: const Text(
+        'Start',
+        style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+      ),
+    );
+  }
+
+  Text experienceInfo() {
+    return Text(
+      'Landscape view optimized for vertical learning.\nRotate your device for full experience.',
+      textAlign: TextAlign.center,
+      style: TextStyle(
+        color: Colors.grey[500],
+        fontSize: 11,
+        fontStyle: FontStyle.italic,
+        height: 1.5,
+      ),
+    );
+  }
+
+  GestureDetector videoControllers() {
+    return GestureDetector(
+      onTap: () {
+        setState(() {
+          _showControls != _showControls;
+        });
+      },
+      child: AspectRatio(
+        aspectRatio: _controller.value.aspectRatio,
+        child: Stack(
+          alignment: Alignment.bottomCenter,
+          children: [
+            // The actual video
+            VideoPlayer(_controller),
+
+            // The Custom UI Overlay
+            if (_showControls) _buildControlsOverlay(),
           ],
         ),
       ),
@@ -239,164 +241,159 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           // Top Row: Back, Title, Settings
-          Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                GestureDetector(
-                  onTap: () => Navigator.pop(context),
-                  child: const Icon(
-                    Icons.arrow_back_ios,
-                    color: Colors.white,
-                    size: 18,
-                  ),
-                ),
-
-                const SizedBox(width: 12),
-
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text(
-                        'Lesson 4:\nHigh-Pressue Joint Welding',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 14,
-                          fontWeight: FontWeight.bold,
-                          height: 1.2,
-                        ),
-                      ),
-
-                      const SizedBox(height: 4),
-
-                      Text(
-                        'Ustad Arshad Mehmood',
-                        style: TextStyle(color: Colors.white70, fontSize: 10),
-                      ),
-                    ],
-                  ),
-                ),
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 8,
-                    vertical: 4,
-                  ),
-                  decoration: BoxDecoration(
-                    border: Border.all(color: Colors.white54),
-                    borderRadius: BorderRadius.circular(4),
-                  ),
-                  child: const Text(
-                    'HD 1080p',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 8,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ),
-
-                const SizedBox(width: 12),
-
-                const Icon(
-                  Icons.settings_outlined,
-                  color: Colors.white,
-                  size: 20,
-                ),
-              ],
-            ),
-          ),
+          controlsTopRow(),
 
           // Middle Row: Play, Pause, Skip Controls
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              IconButton(
-                icon: const Icon(
-                  Icons.replay_10,
-                  color: Colors.white,
-                  size: 32,
-                ),
-                onPressed: _rewind10,
-              ),
-
-              const SizedBox(width: 24),
-
-              GestureDetector(
-                onTap: _togglePlay,
-                child: Container(
-                  width: 56,
-                  height: 56,
-                  decoration: BoxDecoration(
-                    color: themeColor,
-                    shape: BoxShape.circle,
-                  ),
-                  child: Icon(
-                    _controller.value.isPlaying
-                        ? Icons.pause
-                        : Icons.play_arrow,
-                    color: Colors.white,
-                    size: 32,
-                  ),
-                ),
-              ),
-
-              const SizedBox(width: 24),
-
-              IconButton(
-                icon: Icon(Icons.forward_10, color: Colors.white, size: 32),
-                onPressed: _forward10,
-              ),
-            ],
-          ),
+          controlsMiddleRow(themeColor),
 
           // Bottom Row: Progress Bar & TimeStamps
-          Padding(
-            padding: const EdgeInsets.only(
-              left: 16.0,
-              right: 16.0,
-              bottom: 8.0,
+          controlsBottomRow(themeColor),
+        ],
+      ),
+    );
+  }
+
+  Padding controlsBottomRow(Color themeColor) {
+    return Padding(
+      padding: const EdgeInsets.only(left: 16.0, right: 16.0, bottom: 8.0),
+      child: Row(
+        children: [
+          Text(
+            _formatDuration(_controller.value.position),
+            style: const TextStyle(
+              color: Colors.white,
+              fontSize: 10,
+              fontWeight: FontWeight.bold,
             ),
-            child: Row(
+          ),
+
+          const SizedBox(width: 8),
+
+          Expanded(
+            child: VideoProgressIndicator(
+              _controller,
+              allowScrubbing: true,
+              colors: VideoProgressColors(
+                playedColor: themeColor,
+                bufferedColor: Colors.white24,
+                backgroundColor: Colors.white12,
+              ),
+              padding: const EdgeInsets.symmetric(vertical: 16),
+            ),
+          ),
+
+          const SizedBox(width: 8),
+
+          Text(
+            _formatDuration(_controller.value.duration),
+            style: const TextStyle(
+              color: Colors.white,
+              fontSize: 10,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Row controlsMiddleRow(Color themeColor) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        IconButton(
+          icon: const Icon(Icons.replay_10, color: Colors.white, size: 32),
+          onPressed: _rewind10,
+        ),
+
+        const SizedBox(width: 24),
+
+        GestureDetector(
+          onTap: _togglePlay,
+          child: Container(
+            width: 56,
+            height: 56,
+            decoration: BoxDecoration(
+              color: themeColor,
+              shape: BoxShape.circle,
+            ),
+            child: Icon(
+              _controller.value.isPlaying ? Icons.pause : Icons.play_arrow,
+              color: Colors.white,
+              size: 32,
+            ),
+          ),
+        ),
+
+        const SizedBox(width: 24),
+
+        IconButton(
+          icon: Icon(Icons.forward_10, color: Colors.white, size: 32),
+          onPressed: _forward10,
+        ),
+      ],
+    );
+  }
+
+  Padding controlsTopRow() {
+    return Padding(
+      padding: const EdgeInsets.all(16.0),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          GestureDetector(
+            onTap: () => Navigator.pop(context),
+            child: const Icon(
+              Icons.arrow_back_ios,
+              color: Colors.white,
+              size: 18,
+            ),
+          ),
+
+          const SizedBox(width: 12),
+
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  _formatDuration(_controller.value.position),
-                  style: const TextStyle(
+                const Text(
+                  'Lesson 4:\nHigh-Pressue Joint Welding',
+                  style: TextStyle(
                     color: Colors.white,
-                    fontSize: 10,
+                    fontSize: 14,
                     fontWeight: FontWeight.bold,
+                    height: 1.2,
                   ),
                 ),
 
-                const SizedBox(width: 8),
-
-                Expanded(
-                  child: VideoProgressIndicator(
-                    _controller,
-                    allowScrubbing: true,
-                    colors: VideoProgressColors(
-                      playedColor: themeColor,
-                      bufferedColor: Colors.white24,
-                      backgroundColor: Colors.white12,
-                    ),
-                    padding: const EdgeInsets.symmetric(vertical: 16),
-                  ),
-                ),
-
-                const SizedBox(width: 8),
+                const SizedBox(height: 4),
 
                 Text(
-                  _formatDuration(_controller.value.duration),
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 10,
-                    fontWeight: FontWeight.bold,
-                  ),
+                  'Ustad Arshad Mehmood',
+                  style: TextStyle(color: Colors.white70, fontSize: 10),
                 ),
               ],
             ),
           ),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+            decoration: BoxDecoration(
+              border: Border.all(color: Colors.white54),
+              borderRadius: BorderRadius.circular(4),
+            ),
+            child: const Text(
+              'HD 1080p',
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 8,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ),
+
+          const SizedBox(width: 12),
+
+          const Icon(Icons.settings_outlined, color: Colors.white, size: 20),
         ],
       ),
     );
