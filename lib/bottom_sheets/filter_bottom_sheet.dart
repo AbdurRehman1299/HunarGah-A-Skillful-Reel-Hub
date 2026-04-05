@@ -29,157 +29,163 @@ class _FilterBottomSheetState extends State<FilterBottomSheet> {
       child: Column(
         children: [
           // -- Header Section --
-          Padding(
-            padding: const EdgeInsets.symmetric(
-              horizontal: 16.0,
-              vertical: 12.0,
-            ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                IconButton(
-                  onPressed: () => Navigator.pop(context),
-                  icon: Icon(Icons.close, color: Colors.black),
-                ),
-                const Text(
-                  'Filters',
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                ),
-                TextButton.icon(
-                  onPressed: () {
-                    setState(() {
-                      _selectedSort = 'Most Popular';
-                      _selectedLanguage = 'Urdu';
-                      _selectedSkillLevel = 'All Levels';
-                    });
-                  },
-                  icon: Icon(Icons.refresh, color: themeColor, size: 16),
-                  label: Text(
-                    'Reset',
-                    style: TextStyle(
-                      color: themeColor,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
+          headerSection(context, themeColor),
 
           Divider(color: Colors.grey[200], height: 1, thickness: 1),
 
           // -- Scrollable Filter Options --
-          Expanded(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.all(24.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // 1. Sort By
-                  _buildSectionTitle(Icons.sort, 'Sort by'),
-                  _buildRadioOption(
-                    'Most Popular',
-                    'Courses with most learner',
-                    _selectedSort,
-                    (val) => setState(() => _selectedSort = val),
-                  ),
-                  _buildRadioOption(
-                    'Recently Added',
-                    'New Skills from Top Ustads',
-                    _selectedSort,
-                    (val) => setState(() => _selectedSort = val),
-                  ),
-                  _buildRadioOption(
-                    'Top Rated',
-                    'Highest user satisfaction',
-                    _selectedSort,
-                    (val) => setState(() => _selectedSort = val),
-                  ),
+          filterOptions(),
 
-                  const SizedBox(height: 24),
+          // -- Apply Button --
+          applyButton(context, themeColor),
+        ],
+      ),
+    );
+  }
 
-                  // 2. Language
-                  _buildSectionTitle(Icons.language, 'Language'),
-                  Wrap(
-                    spacing: 12,
-                    runSpacing: 12,
-                    children: [
-                      _buildLanguagePill('Urdu'),
-                      _buildLanguagePill('English'),
-                      _buildLanguagePill('Punjabi'),
-                    ],
-                  ),
-
-                  const SizedBox(height: 24),
-
-                  // 3. Skill Level
-                  _buildSectionTitle(Icons.bar_chart, 'Skill Level'),
-                  _buildRadioOption(
-                    'All Levels',
-                    '',
-                    _selectedSkillLevel,
-                    (val) => setState(() => _selectedSkillLevel = val),
-                  ),
-                  _buildRadioOption(
-                    'Beginner',
-                    'Start from basics',
-                    _selectedSkillLevel,
-                    (val) => setState(() => _selectedSkillLevel = val),
-                  ),
-                  _buildRadioOption(
-                    'Intermediate',
-                    'Expand your existing knowledge',
-                    _selectedSkillLevel,
-                    (val) => setState(() => _selectedSkillLevel = val),
-                  ),
-                  _buildRadioOption(
-                    'Advanced',
-                    'Take your skills on another level',
-                    _selectedSkillLevel,
-                    (val) => setState(() => _selectedSkillLevel = val),
-                  ),
-                ],
+  Padding applyButton(BuildContext context, Color themeColor) {
+    return Padding(
+      padding: const EdgeInsets.all(24.0),
+      child: Column(
+        children: [
+          SizedBox(
+            width: double.infinity,
+            height: 54,
+            child: ElevatedButton(
+              onPressed: () {
+                Navigator.pop(context);
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: themeColor,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                elevation: 0,
+              ),
+              child: const Text(
+                'Apply Filter',
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                ),
               ),
             ),
           ),
 
-          // -- Apply Button --
-          Padding(
-            padding: const EdgeInsets.all(24.0),
-            child: Column(
+          const SizedBox(height: 12),
+
+          Text(
+            'Personalizing your skill feed...',
+            style: TextStyle(color: Colors.grey[500], fontSize: 11),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Expanded filterOptions() {
+    return Expanded(
+      child: SingleChildScrollView(
+        padding: const EdgeInsets.all(24.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // 1. Sort By
+            _buildSectionTitle(Icons.sort, 'Sort by'),
+            _buildRadioOption(
+              'Most Popular',
+              'Courses with most learner',
+              _selectedSort,
+              (val) => setState(() => _selectedSort = val),
+            ),
+            _buildRadioOption(
+              'Recently Added',
+              'New Skills from Top Ustads',
+              _selectedSort,
+              (val) => setState(() => _selectedSort = val),
+            ),
+            _buildRadioOption(
+              'Top Rated',
+              'Highest user satisfaction',
+              _selectedSort,
+              (val) => setState(() => _selectedSort = val),
+            ),
+
+            const SizedBox(height: 24),
+
+            // 2. Language
+            _buildSectionTitle(Icons.language, 'Language'),
+            Wrap(
+              spacing: 12,
+              runSpacing: 12,
               children: [
-                SizedBox(
-                  width: double.infinity,
-                  height: 54,
-                  child: ElevatedButton(
-                    onPressed: () {
-                      Navigator.pop(context);
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: themeColor,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      elevation: 0,
-                    ),
-                    child: const Text(
-                      'Apply Filter',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
-                      ),
-                    ),
-                  ),
-                ),
-
-                const SizedBox(height: 12),
-
-                Text(
-                  'Personalizing your skill feed...',
-                  style: TextStyle(color: Colors.grey[500], fontSize: 11),
-                ),
+                _buildLanguagePill('Urdu'),
+                _buildLanguagePill('English'),
+                _buildLanguagePill('Punjabi'),
               ],
+            ),
+
+            const SizedBox(height: 24),
+
+            // 3. Skill Level
+            _buildSectionTitle(Icons.bar_chart, 'Skill Level'),
+            _buildRadioOption(
+              'All Levels',
+              '',
+              _selectedSkillLevel,
+              (val) => setState(() => _selectedSkillLevel = val),
+            ),
+            _buildRadioOption(
+              'Beginner',
+              'Start from basics',
+              _selectedSkillLevel,
+              (val) => setState(() => _selectedSkillLevel = val),
+            ),
+            _buildRadioOption(
+              'Intermediate',
+              'Expand your existing knowledge',
+              _selectedSkillLevel,
+              (val) => setState(() => _selectedSkillLevel = val),
+            ),
+            _buildRadioOption(
+              'Advanced',
+              'Take your skills on another level',
+              _selectedSkillLevel,
+              (val) => setState(() => _selectedSkillLevel = val),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Padding headerSection(BuildContext context, Color themeColor) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          IconButton(
+            onPressed: () => Navigator.pop(context),
+            icon: Icon(Icons.close, color: Colors.black),
+          ),
+          const Text(
+            'Filters',
+            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+          ),
+          TextButton.icon(
+            onPressed: () {
+              setState(() {
+                _selectedSort = 'Most Popular';
+                _selectedLanguage = 'Urdu';
+                _selectedSkillLevel = 'All Levels';
+              });
+            },
+            icon: Icon(Icons.refresh, color: themeColor, size: 16),
+            label: Text(
+              'Reset',
+              style: TextStyle(color: themeColor, fontWeight: FontWeight.bold),
             ),
           ),
         ],
@@ -258,32 +264,36 @@ class _FilterBottomSheetState extends State<FilterBottomSheet> {
               ),
             ),
             // Custom Radio Circle
-            Container(
-              width: 20,
-              height: 20,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                border: Border.all(
-                  color: isSelected ? themeColor : Colors.grey[400]!,
-                  width: 1.5,
-                ),
-              ),
-              child: isSelected
-                  ? Center(
-                      child: Container(
-                        width: 10,
-                        height: 10,
-                        decoration: BoxDecoration(
-                          color: themeColor,
-                          shape: BoxShape.circle,
-                        ),
-                      ),
-                    )
-                  : null,
-            ),
+            radioCircle(isSelected, themeColor),
           ],
         ),
       ),
+    );
+  }
+
+  Container radioCircle(bool isSelected, Color themeColor) {
+    return Container(
+      width: 20,
+      height: 20,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        border: Border.all(
+          color: isSelected ? themeColor : Colors.grey[400]!,
+          width: 1.5,
+        ),
+      ),
+      child: isSelected
+          ? Center(
+              child: Container(
+                width: 10,
+                height: 10,
+                decoration: BoxDecoration(
+                  color: themeColor,
+                  shape: BoxShape.circle,
+                ),
+              ),
+            )
+          : null,
     );
   }
 
