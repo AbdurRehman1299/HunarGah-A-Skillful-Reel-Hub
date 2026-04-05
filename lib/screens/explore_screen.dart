@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:hunargah/bottom_sheets/filter_bottom_sheet.dart';
 import 'package:hunargah/components/app_bar.dart';
 
 class ExploreScreen extends StatefulWidget {
@@ -157,7 +158,12 @@ class _ExploreScreenState extends State<ExploreScreen> {
 
   // Method to show the Bottom sheet
   void _showFilterModal(BuildContext context) {
-    // showModalBottomSheet(context: context, isScrollControlled: true, backgroundColor: Colors.transparent, builder: (context) => const FilterBottomSheet);
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => const FilterBottomSheet(),
+    );
   }
 
   // Reusable Widget: Horizontal Skills Pills
