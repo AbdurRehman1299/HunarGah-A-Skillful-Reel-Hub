@@ -283,7 +283,7 @@ class _LearnerFeedScreenState extends State<LearnerFeedScreen> {
             width: 50,
             child: Stack(
               alignment: Alignment.topCenter,
-              children: [profileAvatar(), addSign_border(themeColor)],
+              children: [profileAvatar(), addSignBorder(themeColor)],
             ),
           ),
 
@@ -298,7 +298,7 @@ class _LearnerFeedScreenState extends State<LearnerFeedScreen> {
     );
   }
 
-  Positioned addSign_border(Color themeColor) {
+  Positioned addSignBorder(Color themeColor) {
     return Positioned(
       bottom: 0,
       child: Container(

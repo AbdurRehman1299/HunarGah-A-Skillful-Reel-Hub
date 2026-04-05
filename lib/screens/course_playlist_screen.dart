@@ -472,7 +472,16 @@ class _CoursePlaylistScreenState extends State<CoursePlaylistScreen> {
         const SizedBox(height: 8),
 
         if (state != LessonState.locked)
-          Icon(Icons.arrow_forward_ios, size: 12, color: Colors.grey[400]),
+          IconButton(
+            icon: Icon(
+              Icons.arrow_forward_ios,
+              size: 12,
+              color: Colors.grey[400],
+            ),
+            onPressed: () {
+              Navigator.pushNamed(context, '/video-player');
+            },
+          ),
       ],
     );
   }

@@ -109,7 +109,7 @@ class _UstadProfileScreenState extends State<UstadProfileScreen> {
       ),
       itemCount: 9,
       itemBuilder: (context, index) {
-        return _buildVideoThumbnail();
+        return _buildVideoThumbnail(context);
       },
     );
   }
@@ -314,7 +314,7 @@ class _UstadProfileScreenState extends State<UstadProfileScreen> {
   }
 
   // Reusable Widget: Video Thumbnail Card
-  Widget _buildVideoThumbnail() {
+  Widget _buildVideoThumbnail(BuildContext context) {
     return GestureDetector(
       onTap: () => Navigator.pushNamed(context, '/course-playlist'),
       child: Container(
