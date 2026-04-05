@@ -315,27 +315,30 @@ class _UstadProfileScreenState extends State<UstadProfileScreen> {
 
   // Reusable Widget: Video Thumbnail Card
   Widget _buildVideoThumbnail() {
-    return Container(
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(8),
-        image: const DecorationImage(
-          image: NetworkImage(
-            'https://images.unsplash.com/photo-1509391366360-2e959784a276?auto=format&fit=crop&w=300&q=80',
+    return GestureDetector(
+      onTap: () => Navigator.pushNamed(context, '/course-playlist'),
+      child: Container(
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(8),
+          image: const DecorationImage(
+            image: NetworkImage(
+              'https://images.unsplash.com/photo-1509391366360-2e959784a276?auto=format&fit=crop&w=300&q=80',
+            ),
+            fit: BoxFit.cover,
           ),
-          fit: BoxFit.cover,
         ),
-      ),
-      child: Stack(
-        children: [
-          // Gradient to make text readable
-          thumbnailGradient(),
+        child: Stack(
+          children: [
+            // Gradient to make text readable
+            thumbnailGradient(),
 
-          // Duration Badge
-          durationBadge(),
+            // Duration Badge
+            durationBadge(),
 
-          // Title & Views
-          titleAndViews(),
-        ],
+            // Title & Views
+            titleAndViews(),
+          ],
+        ),
       ),
     );
   }

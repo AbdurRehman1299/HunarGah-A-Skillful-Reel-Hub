@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:hunargah/dashboards/main_dashboard.dart';
+import 'package:hunargah/screens/course_playlist_screen.dart';
 import 'package:hunargah/screens/language_selector_screen.dart';
 import 'package:hunargah/screens/login_screen.dart';
 import 'package:hunargah/screens/notifications_screen.dart';
@@ -37,6 +38,7 @@ class MainApp extends StatelessWidget {
         '/profile': (context) => const ProfilePictureScreen(),
         '/dashboard': (context) => const MainDashboard(),
         '/ustad-profile': (context) => const UstadProfileScreen(),
+        '/course-playlist': (context) => const CoursePlaylistScreen(),
         '/notification': (context) => const NotificationsScreen(),
       },
 
