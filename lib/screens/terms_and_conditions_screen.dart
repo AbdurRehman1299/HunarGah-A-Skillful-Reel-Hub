@@ -1,15 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:hunargah/components/app_bar.dart';
 
-class TermsAndConditionsScreen extends StatefulWidget {
+class TermsAndConditionsScreen extends StatelessWidget {
   const TermsAndConditionsScreen({super.key});
 
-  @override
-  State<TermsAndConditionsScreen> createState() =>
-      _TermsAndConditionsScreenState();
-}
-
-class _TermsAndConditionsScreenState extends State<TermsAndConditionsScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
