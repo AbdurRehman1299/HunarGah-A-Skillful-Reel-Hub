@@ -5,6 +5,7 @@ import 'package:hunargah/screens/language_selector_screen.dart';
 import 'package:hunargah/screens/login_screen.dart';
 import 'package:hunargah/screens/notifications_screen.dart';
 import 'package:hunargah/screens/onboarding_screen.dart';
+import 'package:hunargah/screens/privacy_and_policy_screen.dart';
 import 'package:hunargah/screens/profile_picture_screen.dart';
 import 'package:hunargah/screens/signup_screen.dart';
 import 'package:hunargah/screens/skills_interested_screen.dart';
@@ -33,7 +34,7 @@ class MainApp extends StatelessWidget {
         '/login': (context) => const LoginScreen(),
         '/signup': (context) => const SignupScreen(),
         '/terms': (context) => const TermsAndConditionsScreen(),
-        // '/privacy': (context) => const PrivacyPolicyScreen(),
+        '/privacy': (context) => const PrivacyPolicyScreen(),
         '/onboarding': (context) => const OnboardingScreen(),
         '/language': (context) => const LanguageSelectorScreen(),
         '/skills': (context) => const SkillsInterestedScreen(),

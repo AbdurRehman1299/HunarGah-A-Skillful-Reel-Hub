@@ -38,7 +38,7 @@ class _TermsAndConditionsScreenState extends State<TermsAndConditionsScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'Last updated: October 24, 2023',
+              'Last updated: April 6, 2026',
               style: TextStyle(
                 color: Colors.grey[500],
                 fontSize: 12,

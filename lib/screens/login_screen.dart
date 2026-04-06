@@ -293,7 +293,7 @@ class _LoginScreenState extends State<LoginScreen> {
             style: TextStyle(color: themeColor, fontWeight: FontWeight.bold),
             recognizer: TapGestureRecognizer()
               ..onTap = () {
-                // Navigator.pushNamed(context, '/privacy');+
+                Navigator.pushNamed(context, '/privacy');
               },
           ),
         ],
