@@ -284,7 +284,7 @@ class _LoginScreenState extends State<LoginScreen> {
             style: TextStyle(color: themeColor, fontWeight: FontWeight.bold),
             recognizer: TapGestureRecognizer()
               ..onTap = () {
-                // Navigator.pushNamed(context, '/terms');
+                Navigator.pushNamed(context, '/terms');
               },
           ),
           const TextSpan(text: ' and\n'),

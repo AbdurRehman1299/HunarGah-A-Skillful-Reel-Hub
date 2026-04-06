@@ -9,6 +9,7 @@ import 'package:hunargah/screens/profile_picture_screen.dart';
 import 'package:hunargah/screens/signup_screen.dart';
 import 'package:hunargah/screens/skills_interested_screen.dart';
 import 'package:hunargah/screens/splash_screen.dart';
+import 'package:hunargah/screens/terms_and_conditions_screen.dart';
 import 'package:hunargah/screens/ustad_profile_screen.dart';
 import 'package:hunargah/screens/video_player_screen.dart';
 
@@ -31,7 +32,7 @@ class MainApp extends StatelessWidget {
       routes: {
         '/login': (context) => const LoginScreen(),
         '/signup': (context) => const SignupScreen(),
-        // '/terms': (context) => const TermsServiceScreen(),
+        '/terms': (context) => const TermsAndConditionsScreen(),
         // '/privacy': (context) => const PrivacyPolicyScreen(),
         '/onboarding': (context) => const OnboardingScreen(),
         '/language': (context) => const LanguageSelectorScreen(),
