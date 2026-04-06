@@ -57,9 +57,9 @@ class CustomBottomNav extends StatelessWidget {
           BottomNavigationBarItem(
             icon: Padding(
               padding: EdgeInsets.only(bottom: 4.0),
-              child: Icon(Icons.cloud_download_outlined),
+              child: Icon(Icons.person),
             ),
-            label: 'Downloads',
+            label: 'Profile',
           ),
         ],
       ),
