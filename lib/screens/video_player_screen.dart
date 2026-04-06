@@ -180,7 +180,9 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
 
   ElevatedButton startButton(Color themeColor) {
     return ElevatedButton(
-      onPressed: () {},
+      onPressed: () {
+        Navigator.pushNamed(context, '/quiz');
+      },
       style: ElevatedButton.styleFrom(
         backgroundColor: themeColor,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
