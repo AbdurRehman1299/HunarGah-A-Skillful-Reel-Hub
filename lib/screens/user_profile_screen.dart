@@ -40,215 +40,28 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // -- Profile Header(Avatar & Stats) --
-            Padding(
-              padding: const EdgeInsets.symmetric(
-                horizontal: 20.0,
-                vertical: 16.0,
-              ),
-              child: Row(
-                children: [
-                  // Avatar with Online Status Dot
-                  Stack(
-                    children: [
-                      const CircleAvatar(
-                        radius: 40,
-                        backgroundImage: NetworkImage(
-                          'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=150&q=80',
-                        ),
-                      ),
-                      Positioned(
-                        bottom: 2,
-                        right: 2,
-                        child: Container(
-                          width: 18,
-                          height: 18,
-                          decoration: BoxDecoration(
-                            color: Colors.green[500],
-                            shape: BoxShape.circle,
-                            border: Border.all(color: Colors.white, width: 3),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(width: 24),
-
-                  // Stats
-                  Expanded(
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                      children: [
-                        _buildStatColumn('128', 'Posts'),
-                        _buildStatColumn('14.2k', 'Followers'),
-                        _buildStatColumn('842', 'Following'),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            ),
+            avatarAndStats(),
 
             // -- Bio Section --
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      const Text(
-                        'Alex Chen',
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.black,
-                        ),
-                      ),
-                      const SizedBox(width: 6),
-                      Icon(Icons.verified, color: Colors.cyan[400], size: 18),
-                    ],
-                  ),
-                  const SizedBox(height: 6),
-                  const Text(
-                    'Digital Product Designer & Tech Educator. Helping 10k+ students master modern UI/UX workflows. 🚀',
-                    style: TextStyle(
-                      fontSize: 13,
-                      color: Colors.black87,
-                      height: 1.4,
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-                  // Tags
-                  Row(
-                    children: [
-                      _buildTag('UI/UX Design'),
-                      const SizedBox(width: 8),
-                      _buildTag('Education'),
-                    ],
-                  ),
-                ],
-              ),
-            ),
+            profileBio(),
+
             const SizedBox(height: 20),
 
             // -- Action Buttons --
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20.0),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: ElevatedButton(
-                      onPressed: () {},
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: themeColor,
-                        elevation: 0,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        padding: const EdgeInsets.symmetric(vertical: 12),
-                      ),
-                      child: const Text(
-                        'Edit Profile',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontWeight: FontWeight.bold,
-                          fontSize: 13,
-                        ),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: OutlinedButton(
-                      onPressed: () {},
-                      style: OutlinedButton.styleFrom(
-                        side: BorderSide(color: Colors.grey[300]!),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        padding: const EdgeInsets.symmetric(vertical: 12),
-                      ),
-                      child: const Text(
-                        'Share Profile',
-                        style: TextStyle(
-                          color: Colors.black87,
-                          fontWeight: FontWeight.bold,
-                          fontSize: 13,
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
+            profileActionButtons(themeColor),
+
             const SizedBox(height: 20),
 
             // -- Creator Toggle --
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20.0),
-              child: Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 12,
-                ),
-                decoration: BoxDecoration(
-                  color: Colors.grey[50],
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: Colors.grey[200]!),
-                ),
-                child: Row(
-                  children: [
-                    Icon(Icons.bolt, color: Colors.grey[600]),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const Text(
-                            'Switch to Creator',
-                            style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 13,
-                            ),
-                          ),
-                          const SizedBox(height: 2),
-                          Text(
-                            'Access analytics & monetization',
-                            style: TextStyle(
-                              color: Colors.grey[500],
-                              fontSize: 11,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    Switch(
-                      value: _isCreatorMode,
-                      activeThumbColor: themeColor,
-                      onChanged: (val) {
-                        setState(() {
-                          _isCreatorMode = val;
-                        });
-                      },
-                    ),
-                  ],
-                ),
-              ),
-            ),
+            switchToCreator(themeColor),
+
             const SizedBox(height: 24),
 
             // -- Custom Tabs --
-            Row(
-              children: [
-                _buildTabItem(0, 'Saved', Icons.bookmark_outline),
-                _buildTabItem(
-                  1,
-                  'Certificates',
-                  Icons.workspace_premium_outlined,
-                ),
-              ],
-            ),
+            customTabs(),
+
             Divider(color: Colors.grey[200], height: 1, thickness: 1),
+
             const SizedBox(height: 16),
 
             // -- Grid View --
@@ -271,7 +84,6 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                 ),
               )
             else
-              // Dummy state for Certificates tab
               const Center(
                 child: Padding(
                   padding: EdgeInsets.all(40.0),
@@ -286,6 +98,207 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
           ],
         ),
       ),
+    );
+  }
+
+  Row customTabs() {
+    return Row(
+      children: [
+        _buildTabItem(0, 'Saved', Icons.bookmark_outline),
+        _buildTabItem(1, 'Certificates', Icons.workspace_premium_outlined),
+      ],
+    );
+  }
+
+  Padding switchToCreator(Color themeColor) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 20.0),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        decoration: BoxDecoration(
+          color: Colors.grey[50],
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: Colors.grey[200]!),
+        ),
+        child: Row(
+          children: [
+            Icon(Icons.bolt, color: Colors.grey[600]),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    'Switch to Creator',
+                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    'Access analytics & monetization',
+                    style: TextStyle(color: Colors.grey[500], fontSize: 11),
+                  ),
+                ],
+              ),
+            ),
+            Switch(
+              value: _isCreatorMode,
+              activeThumbColor: themeColor,
+              onChanged: (val) {
+                setState(() {
+                  _isCreatorMode = val;
+                });
+              },
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Padding profileActionButtons(Color themeColor) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 20.0),
+      child: Row(
+        children: [
+          Expanded(
+            child: ElevatedButton(
+              onPressed: () {},
+              style: ElevatedButton.styleFrom(
+                backgroundColor: themeColor,
+                elevation: 0,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                padding: const EdgeInsets.symmetric(vertical: 12),
+              ),
+              child: const Text(
+                'Edit Profile',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 13,
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: OutlinedButton(
+              onPressed: () {},
+              style: OutlinedButton.styleFrom(
+                side: BorderSide(color: Colors.grey[300]!),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                padding: const EdgeInsets.symmetric(vertical: 12),
+              ),
+              child: const Text(
+                'Share Profile',
+                style: TextStyle(
+                  color: Colors.black87,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 13,
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Padding profileBio() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 20.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              const Text(
+                'Alex Chen',
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black,
+                ),
+              ),
+              const SizedBox(width: 6),
+              Icon(Icons.verified, color: Colors.cyan[400], size: 18),
+            ],
+          ),
+          const SizedBox(height: 6),
+          const Text(
+            'Digital Product Designer & Tech Educator. Helping 10k+ students master modern UI/UX workflows. 🚀',
+            style: TextStyle(fontSize: 13, color: Colors.black87, height: 1.4),
+          ),
+          const SizedBox(height: 12),
+          // Tags
+          Row(
+            children: [
+              _buildTag('UI/UX Design'),
+              const SizedBox(width: 8),
+              _buildTag('Education'),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Padding avatarAndStats() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 16.0),
+      child: Row(
+        children: [
+          // Avatar with Online Status Dot
+          profileAvatar(),
+
+          const SizedBox(width: 24),
+
+          // Stats
+          profileStats(),
+        ],
+      ),
+    );
+  }
+
+  Expanded profileStats() {
+    return Expanded(
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        children: [
+          _buildStatColumn('128', 'Posts'),
+          _buildStatColumn('14.2k', 'Followers'),
+          _buildStatColumn('842', 'Following'),
+        ],
+      ),
+    );
+  }
+
+  Stack profileAvatar() {
+    return Stack(
+      children: [
+        const CircleAvatar(
+          radius: 40,
+          backgroundImage: NetworkImage(
+            'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=150&q=80',
+          ),
+        ),
+        Positioned(
+          bottom: 2,
+          right: 2,
+          child: Container(
+            width: 18,
+            height: 18,
+            decoration: BoxDecoration(
+              color: Colors.green[500],
+              shape: BoxShape.circle,
+              border: Border.all(color: Colors.white, width: 3),
+            ),
+          ),
+        ),
+      ],
     );
   }
 
