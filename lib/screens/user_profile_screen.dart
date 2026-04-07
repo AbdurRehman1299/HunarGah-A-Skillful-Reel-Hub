@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:hunargah/components/app_bar.dart';
+import 'package:share_plus/share_plus.dart';
+import 'package:flutter/services.dart';
 
 class UserProfileScreen extends StatefulWidget {
   const UserProfileScreen({super.key});
@@ -12,6 +14,192 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
   bool _isCreatorMode = false;
   int _selectedTabIndex = 0;
 
+  void _showShareBottomSheet(BuildContext context) {
+    final Color themeColor = const Color(0xFF00BFA5);
+    final String profileLink = "hunargah.app/@alex_creativ";
+    final String shareText =
+        "Check out Alex Chen's profile on Hunargah: $profileLink";
+
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      isScrollControlled: true,
+      builder: (BuildContext context) {
+        return Container(
+          padding: const EdgeInsets.only(
+            top: 12,
+            left: 24,
+            right: 24,
+            bottom: 32,
+          ),
+          decoration: const BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.only(
+              topLeft: Radius.circular(24),
+              topRight: Radius.circular(24),
+            ),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // -- Drag Handle --
+              Center(
+                child: Container(
+                  width: 40,
+                  height: 4,
+                  margin: const EdgeInsets.only(bottom: 24),
+                  decoration: BoxDecoration(
+                    color: Colors.grey[300],
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+              ),
+
+              // -- Title --
+              const Text(
+                'Share Profile',
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black87,
+                ),
+              ),
+              const SizedBox(height: 24),
+
+              // -- Social Icons Row --
+              SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                child: Row(
+                  children: [
+                    _buildShareIcon(
+                      icon: Icons.chat_bubble,
+                      label: 'WhatsApp',
+                      bgColor: const Color(0xFF25D366),
+                      onTap: () {
+                        // Use url_launcher to open a wa.me link
+                        Navigator.pop(context);
+                      },
+                    ),
+                    _buildShareIcon(
+                      icon: Icons.facebook,
+                      label: 'Facebook',
+                      bgColor: const Color(0xFF1877F2),
+                      onTap: () {
+                        // Use url_launcher to open FB intent
+                        Navigator.pop(context);
+                      },
+                    ),
+                    _buildShareIcon(
+                      icon: Icons.alternate_email,
+                      label: 'Twitter',
+                      bgColor: Colors.black,
+                      onTap: () {
+                        // Use url_launcher for twitter intent
+                        Navigator.pop(context);
+                      },
+                    ),
+                    _buildShareIcon(
+                      icon: Icons.more_horiz,
+                      label: 'More',
+                      bgColor: Colors.grey[700]!,
+                      onTap: () {
+                        // Close the bottom sheet first so it doesn't block the native UI
+                        Navigator.pop(context);
+
+                        // Trigger the iOS/Android native share menu!
+                        SharePlus.instance.share(ShareParams(text: shareText));
+                      },
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 32),
+
+              // -- Copy Link Box --
+              const Text(
+                'Page Link',
+                style: TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black87,
+                ),
+              ),
+              const SizedBox(height: 8),
+              Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 12,
+                ),
+                decoration: BoxDecoration(
+                  color: Colors.grey[100],
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: Colors.grey[300]!),
+                ),
+                child: Row(
+                  children: [
+                    Icon(Icons.link, color: Colors.grey[600], size: 20),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Text(
+                        profileLink,
+                        style: TextStyle(color: Colors.grey[800], fontSize: 13),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    GestureDetector(
+                      onTap: () async {
+                        // Native copy to clipboard functionality
+                        await Clipboard.setData(
+                          ClipboardData(text: profileLink),
+                        );
+
+                        if (context.mounted) {
+                          Navigator.pop(context); // Close the bottom sheet
+                          // Show success message
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: const Text('Link copied to clipboard!'),
+                              backgroundColor: themeColor,
+                              behavior: SnackBarBehavior.floating,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                            ),
+                          );
+                        }
+                      },
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 6,
+                        ),
+                        decoration: BoxDecoration(
+                          color: themeColor,
+                          borderRadius: BorderRadius.circular(6),
+                        ),
+                        child: const Text(
+                          'Copy',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 12,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final themeColor = Theme.of(context).primaryColor;
@@ -19,14 +207,6 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: CustomAppBar(
-        leading: IconButton(
-          icon: const Icon(
-            Icons.arrow_back_ios_new,
-            color: Colors.black,
-            size: 20,
-          ),
-          onPressed: () => Navigator.pop(context),
-        ),
         title: '@alex_creativity',
         actions: [
           IconButton(
@@ -184,7 +364,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
           const SizedBox(width: 12),
           Expanded(
             child: OutlinedButton(
-              onPressed: () {},
+              onPressed: () => _showShareBottomSheet(context),
               style: OutlinedButton.styleFrom(
                 side: BorderSide(color: Colors.grey[300]!),
                 shape: RoundedRectangleBorder(
@@ -469,6 +649,43 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
           overflow: TextOverflow.ellipsis,
         ),
       ],
+    );
+  }
+
+  // Resuable Widget: Build share icon + label for bottom sheet
+  Widget _buildShareIcon({
+    required IconData icon,
+    required String label,
+    required Color bgColor,
+    required VoidCallback onTap,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Padding(
+        padding: const EdgeInsets.only(right: 20.0),
+        child: Column(
+          children: [
+            Container(
+              width: 56,
+              height: 56,
+              decoration: BoxDecoration(
+                color: bgColor.withValues(alpha: 0.1),
+                shape: BoxShape.circle,
+              ),
+              child: Icon(icon, color: bgColor, size: 28),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              label,
+              style: TextStyle(
+                fontSize: 11,
+                color: Colors.grey[700],
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }
