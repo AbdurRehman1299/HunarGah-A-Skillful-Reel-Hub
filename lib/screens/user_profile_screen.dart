@@ -362,7 +362,9 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
         children: [
           Expanded(
             child: ElevatedButton(
-              onPressed: () {},
+              onPressed: () {
+                Navigator.pushNamed(context, '/edit-profile');
+              },
               style: ElevatedButton.styleFrom(
                 backgroundColor: themeColor,
                 elevation: 0,

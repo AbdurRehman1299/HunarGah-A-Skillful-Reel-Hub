@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:hunargah/dashboards/main_dashboard.dart';
 import 'package:hunargah/screens/course_playlist_screen.dart';
+import 'package:hunargah/screens/edit_profile_screen.dart';
 import 'package:hunargah/screens/language_selector_screen.dart';
 import 'package:hunargah/screens/login_screen.dart';
 import 'package:hunargah/screens/notifications_screen.dart';
@@ -41,6 +42,7 @@ class MainApp extends StatelessWidget {
         '/skills': (context) => const SkillsInterestedScreen(),
         '/profile': (context) => const ProfilePictureScreen(),
         '/dashboard': (context) => const MainDashboard(),
+        '/edit-profile': (context) => const EditProfileScreen(),
         '/ustad-profile': (context) => const UstadProfileScreen(),
         '/course-playlist': (context) => const CoursePlaylistScreen(),
         '/video-player': (context) => const VideoPlayerScreen(),
