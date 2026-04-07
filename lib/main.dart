@@ -48,7 +48,7 @@ class MainApp extends StatelessWidget {
         '/onboarding': (context) => const OnboardingScreen(),
         '/language': (context) => const LanguageSelectorScreen(),
         '/skills': (context) => const SkillsInterestedScreen(),
-        '/profile': (context) => const ProfilePictureScreen(),
+        '/profile-picture': (context) => const ProfilePictureScreen(),
         '/dashboard': (context) => const MainDashboard(),
         '/settings': (context) => const SettingsScreen(),
         '/edit-profile': (context) => const EditProfileScreen(),

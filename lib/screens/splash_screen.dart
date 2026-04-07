@@ -17,43 +17,47 @@ class _SplashScreenState extends State<SplashScreen> {
   }
 
   Future<void> _initializeApp() async {
-    await Future.delayed(const Duration(seconds: 2));
+    final messenger = ScaffoldMessenger.of(context);
+    try {
+      final navigator = Navigator.of(context);
 
-    // Check Firebase Authentication
-    if (!mounted) return;
+      await Future.delayed(const Duration(seconds: 2));
 
-    User? currentUser = FirebaseAuth.instance.currentUser;
-    if (currentUser != null) {
+      User? currentUser = FirebaseAuth.instance.currentUser;
+
+      if (currentUser == null) {
+        navigator.pushReplacementNamed('/signup');
+        return;
+      }
+
       DocumentSnapshot userDoc = await FirebaseFirestore.instance
           .collection('users')
           .doc(currentUser.uid)
           .get();
 
       if (!userDoc.exists) {
-        await FirebaseAuth.instance.signOut();
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('User data not found. Please log in again.'),
-            ),
-          );
-          Navigator.pushReplacementNamed(context, '/login');
-          return;
-        }
+        navigator.pushReplacementNamed('/signup');
+        return;
       }
 
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Welcome back! Redirecting to dashboard...'),
-          ),
-        );
-        // User is logged in
-        Navigator.pushReplacementNamed(context, '/dashboard');
+      final data = userDoc.data() as Map<String, dynamic>?;
+      int step = data?['onboardingStep'] ?? 0;
+
+      if (step == 0) {
+        navigator.pushReplacementNamed('/onboarding');
+      } else if (step == 1) {
+        navigator.pushReplacementNamed('/language');
+      } else if (step == 2) {
+        navigator.pushReplacementNamed('/skills');
+      } else if (step == 3) {
+        navigator.pushReplacementNamed('/profile-picture');
+      } else {
+        navigator.pushReplacementNamed('/dashboard');
       }
-    } else {
-      // User is not logged in
-      Navigator.pushReplacementNamed(context, '/signup');
+    } catch (e) {
+      messenger.showSnackBar(
+        SnackBar(content: Text('Error initializing app: $e')),
+      );
     }
   }
 

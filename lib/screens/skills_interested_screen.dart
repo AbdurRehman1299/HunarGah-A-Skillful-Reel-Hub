@@ -43,7 +43,7 @@ class _SkillsInterestedScreenState extends State<SkillsInterestedScreen> {
           'onboardingStep': 3, // Mark skills selection as completed
         });
 
-        navigator.pushNamed('/profile');
+        navigator.pushNamed('/profile-picture');
       } catch (e) {
         messenger.showSnackBar(
           const SnackBar(

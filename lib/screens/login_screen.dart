@@ -18,6 +18,13 @@ class _LoginScreenState extends State<LoginScreen> {
   bool _obsecurePassword = true;
 
   Future<void> _loginUser(String email, String password) async {
+    // Show a loading
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => const Center(child: CircularProgressIndicator()),
+    );
+
     try {
       // Log the user in
       UserCredential userCredential = await FirebaseAuth.instance

@@ -1,3 +1,7 @@
+import 'dart:convert';
+
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:hunargah/components/app_bar.dart';
 import 'dart:io';
@@ -13,6 +17,7 @@ class ProfilePictureScreen extends StatefulWidget {
 class _ProfilePictureScreenState extends State<ProfilePictureScreen> {
   // Holds the selected Image file
   File? _profileImage;
+  bool _isUploading = false;
 
   // The tool that opens the phone's gallery/camera
   final ImagePicker _picker = ImagePicker();
@@ -35,6 +40,57 @@ class _ProfilePictureScreenState extends State<ProfilePictureScreen> {
       }
     } catch (e) {
       debugPrint("Error picking image $e");
+    }
+  }
+
+  Future<void> _saveProfilePicture() async {
+    if (_profileImage == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Please select a profile picture to continue.'),
+        ),
+      );
+      return;
+    }
+
+    final navigator = Navigator.of(context);
+    final messenger = ScaffoldMessenger.of(context);
+    final uid = FirebaseAuth.instance.currentUser?.uid;
+
+    if (uid != null) {
+      setState(() {
+        _isUploading = true;
+      });
+
+      try {
+        // Convert the image file to bytes
+        List<int> imageBytes = await _profileImage!.readAsBytes();
+
+        // Get the download URL of the uploaded image
+        String downloadURL = base64Encode(imageBytes);
+
+        // Update Firestore
+        await FirebaseFirestore.instance.collection('users').doc(uid).update({
+          'profileImageUrl': downloadURL,
+          'onboardingStep': 4, // Mark profile picture step as completed
+        });
+
+        navigator.pushReplacementNamed('/dashboard');
+      } catch (e) {
+        messenger.showSnackBar(
+          SnackBar(
+            content: Text(
+              'Failed to upload profile picture. Please try again. Error: $e',
+            ),
+          ),
+        );
+      } finally {
+        if (mounted) {
+          setState(() {
+            _isUploading = false;
+          });
+        }
+      }
     }
   }
 
@@ -246,9 +302,15 @@ class _ProfilePictureScreenState extends State<ProfilePictureScreen> {
       width: double.infinity,
       height: 54,
       child: ElevatedButton(
-        onPressed: () {
-          Navigator.pushReplacementNamed(context, '/dashboard');
-        },
+        onPressed: _isUploading
+            ? null
+            : () {
+                if (hasImage) {
+                  _saveProfilePicture();
+                } else {
+                  Navigator.pushReplacementNamed(context, '/dashboard');
+                }
+              },
         style: ElevatedButton.styleFrom(
           backgroundColor: themeColor,
           shape: RoundedRectangleBorder(
@@ -256,20 +318,33 @@ class _ProfilePictureScreenState extends State<ProfilePictureScreen> {
           ),
           elevation: 0,
         ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Text(
-              hasImage ? 'Save & Continue' : 'Continue',
-              style: const TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
-                color: Colors.white,
+        child: _isUploading
+            ? const SizedBox(
+                width: 24,
+                height: 24,
+                child: CircularProgressIndicator(
+                  color: Colors.white,
+                  strokeWidth: 3,
+                ),
+              )
+            : Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    hasImage ? 'Save & Continue' : 'Continue',
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
+                  ),
+                  const Icon(
+                    Icons.arrow_forward,
+                    color: Colors.white,
+                    size: 18,
+                  ),
+                ],
               ),
-            ),
-            const Icon(Icons.arrow_forward, color: Colors.white, size: 18),
-          ],
-        ),
       ),
     );
   }
