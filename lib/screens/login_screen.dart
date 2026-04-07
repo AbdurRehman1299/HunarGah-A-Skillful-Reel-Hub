@@ -1,3 +1,5 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:hunargah/components/app_bar.dart';
@@ -10,8 +12,104 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
+  final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _passwordController = TextEditingController();
   // To toggle password visibility
   bool _obsecurePassword = true;
+
+  Future<void> _loginUser(String email, String password) async {
+    try {
+      // Log the user in
+      UserCredential userCredential = await FirebaseAuth.instance
+          .signInWithEmailAndPassword(
+            email: email.trim(),
+            password: password.trim(),
+          );
+
+      User? user = userCredential.user;
+
+      if (user != null && mounted) {
+        // Fetch the user's profile data from Firestore
+        DocumentSnapshot userDoc = await FirebaseFirestore.instance
+            .collection('users')
+            .doc(user.uid)
+            .get();
+
+        if (userDoc.exists) {
+          // Extract the onboarding step
+          int step = 1;
+
+          // Safely check if the field exists
+          Map<String, dynamic>? data = userDoc.data() as Map<String, dynamic>?;
+          if (data != null && data.containsKey('onboardingStep')) {
+            step = data['onboardingStep'];
+          }
+
+          // Route the user based on their onboarding step
+          if (!mounted) return;
+
+          if (step == 1) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text(
+                  'Please select your preferred language to continue.',
+                ),
+              ),
+            );
+            Navigator.pushReplacementNamed(context, '/language');
+          } else if (step == 2) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text(
+                  'Please select your skills of interest to continue.',
+                ),
+              ),
+            );
+            Navigator.pushReplacementNamed(context, '/skills');
+          } else if (step == 3) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('Please upload a profile picture to continue.'),
+              ),
+            );
+            Navigator.pushReplacementNamed(context, '/profile');
+          } else {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('Login successful! Redirecting to dashboard...'),
+              ),
+            );
+            Navigator.pushReplacementNamed(context, '/dashboard');
+          }
+        }
+      }
+    } on FirebaseAuthException catch (e) {
+      String errorMessage = 'Login failed. Please try again.';
+
+      if (e.code == 'user-not-found' ||
+          e.code == 'wrong-password' ||
+          e.code == 'invalid-credential') {
+        errorMessage = 'Invalid email or password. Please try again.';
+      } else {
+        errorMessage = 'An error occurred. Please try again.';
+      }
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(errorMessage), backgroundColor: Colors.red),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('An unexpected error occurred. Please try again.'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -139,6 +237,7 @@ class _LoginScreenState extends State<LoginScreen> {
         const SizedBox(height: 8),
 
         TextFormField(
+          controller: _emailController,
           decoration: InputDecoration(
             hintText: 'Enter your Email',
             hintStyle: TextStyle(color: Colors.grey[400], fontSize: 14),
@@ -180,6 +279,7 @@ class _LoginScreenState extends State<LoginScreen> {
         const SizedBox(height: 8),
 
         TextFormField(
+          controller: _passwordController,
           obscureText: _obsecurePassword,
           decoration: InputDecoration(
             hintText: '••••••••',
@@ -225,7 +325,19 @@ class _LoginScreenState extends State<LoginScreen> {
       width: double.infinity,
       height: 50,
       child: ElevatedButton(
-        onPressed: () {},
+        onPressed: () {
+          if (_emailController.text.isNotEmpty &&
+              _passwordController.text.isNotEmpty) {
+            _loginUser(_emailController.text, _passwordController.text);
+          } else {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('Please enter both email and password.'),
+                backgroundColor: Colors.red,
+              ),
+            );
+          }
+        },
         style: ElevatedButton.styleFrom(
           backgroundColor: themeColor,
           shape: RoundedRectangleBorder(

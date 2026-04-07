@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
@@ -23,8 +24,33 @@ class _SplashScreenState extends State<SplashScreen> {
 
     User? currentUser = FirebaseAuth.instance.currentUser;
     if (currentUser != null) {
-      // User is logged in
-      Navigator.pushReplacementNamed(context, '/dashboard');
+      DocumentSnapshot userDoc = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(currentUser.uid)
+          .get();
+
+      if (!userDoc.exists) {
+        await FirebaseAuth.instance.signOut();
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('User data not found. Please log in again.'),
+            ),
+          );
+          Navigator.pushReplacementNamed(context, '/login');
+          return;
+        }
+      }
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Welcome back! Redirecting to dashboard...'),
+          ),
+        );
+        // User is logged in
+        Navigator.pushReplacementNamed(context, '/dashboard');
+      }
     } else {
       // User is not logged in
       Navigator.pushReplacementNamed(context, '/signup');
