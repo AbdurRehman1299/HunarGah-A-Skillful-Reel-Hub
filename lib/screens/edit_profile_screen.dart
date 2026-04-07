@@ -9,11 +9,6 @@ class EditProfileScreen extends StatefulWidget {
 }
 
 class _EditProfileScreenState extends State<EditProfileScreen> {
-  final Color themeColor = const Color(0xFF00BFA5); // Teal/Cyan primary color
-  final Color bgColor = const Color(
-    0xFFF8F9FA,
-  ); // Very light grey for background
-
   // Controllers for the text fields
   final TextEditingController _nameController = TextEditingController(
     text: 'Alexander Thompson',
@@ -58,60 +53,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   // -- Profile Photo Section --
-                  Center(
-                    child: Column(
-                      children: [
-                        Stack(
-                          children: [
-                            Container(
-                              decoration: BoxDecoration(
-                                shape: BoxShape.circle,
-                                border: Border.all(
-                                  color: themeColor.withValues(alpha: 0.3),
-                                  width: 3,
-                                ),
-                              ),
-                              child: const CircleAvatar(
-                                radius: 45,
-                                backgroundImage: NetworkImage(
-                                  'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=150&q=80',
-                                ),
-                              ),
-                            ),
-                            Positioned(
-                              bottom: 0,
-                              right: 0,
-                              child: Container(
-                                padding: const EdgeInsets.all(6),
-                                decoration: BoxDecoration(
-                                  color: themeColor,
-                                  shape: BoxShape.circle,
-                                  border: Border.all(
-                                    color: Colors.white,
-                                    width: 2,
-                                  ),
-                                ),
-                                child: const Icon(
-                                  Icons.camera_alt,
-                                  color: Colors.white,
-                                  size: 14,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 12),
-                        Text(
-                          'Change Profile Photo',
-                          style: TextStyle(
-                            color: themeColor,
-                            fontWeight: FontWeight.bold,
-                            fontSize: 13,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
+                  profilePhotoSection(themeColor),
+
                   const SizedBox(height: 32),
 
                   // -- Personal Identification Section --
@@ -119,59 +62,12 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                     'Personal Identification',
                     'Update your display name as it appears to other members.',
                   ),
+
                   const SizedBox(height: 16),
 
                   // Name Input Card
-                  Container(
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(16),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withValues(alpha: 0.02),
-                          blurRadius: 10,
-                          offset: const Offset(0, 4),
-                        ),
-                      ],
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Full Name',
-                          style: TextStyle(
-                            color: Colors.grey[600],
-                            fontSize: 12,
-                          ),
-                        ),
-                        const SizedBox(height: 8),
-                        _buildCustomTextField(
-                          controller: _nameController,
-                          icon: Icons.person_outline,
-                        ),
-                        const SizedBox(height: 12),
-                        Row(
-                          children: [
-                            Icon(
-                              Icons.info_outline,
-                              size: 14,
-                              color: Colors.grey[500],
-                            ),
-                            const SizedBox(width: 6),
-                            Text(
-                              'Use your real name for verification purposes.',
-                              style: TextStyle(
-                                color: Colors.grey[500],
-                                fontSize: 11,
-                                fontStyle: FontStyle.italic,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
-                  ),
+                  nameInput(),
+
                   const SizedBox(height: 32),
 
                   // -- Local Community Section --
@@ -179,88 +75,17 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                     'Local Community',
                     'Setting your city helps us show you relevant local events.',
                   ),
+
                   const SizedBox(height: 16),
 
                   // Location Input Card
-                  Container(
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(16),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withValues(alpha: 0.02),
-                          blurRadius: 10,
-                          offset: const Offset(0, 4),
-                        ),
-                      ],
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'City / Location',
-                          style: TextStyle(
-                            color: Colors.grey[600],
-                            fontSize: 12,
-                          ),
-                        ),
-                        const SizedBox(height: 8),
-                        _buildCustomTextField(
-                          controller: _cityController,
-                          icon: Icons.location_on_outlined,
-                        ),
-                        const SizedBox(height: 16),
+                  locationInput(),
 
-                        // Location suggestion chips
-                        SingleChildScrollView(
-                          scrollDirection: Axis.horizontal,
-                          child: Row(
-                            children: [
-                              _buildDetectLocationChip(),
-                              const SizedBox(width: 8),
-                              _buildStandardChip('London'),
-                              const SizedBox(width: 8),
-                              _buildStandardChip('New York'),
-                              const SizedBox(width: 8),
-                              _buildStandardChip('Paris'),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
                   const SizedBox(height: 24),
 
                   // -- Info Alert Box --
-                  Container(
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: Colors.blue[50],
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Icon(
-                          Icons.info_outline,
-                          color: Colors.blue[400],
-                          size: 20,
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: Text(
-                            'Your name and city will be visible on your public profile. You can change these settings at any time in your privacy dashboard.',
-                            style: TextStyle(
-                              color: Colors.blue[800],
-                              fontSize: 12,
-                              height: 1.5,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
+                  infoAlert(),
+
                   const SizedBox(height: 20),
                 ],
               ),
@@ -268,34 +93,209 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
           ),
 
           // -- Save Button --
-          Container(
-            padding: const EdgeInsets.all(24.0),
-            decoration: BoxDecoration(color: bgColor),
-            child: ElevatedButton.icon(
-              onPressed: () {
-                // Save logic here
-              },
-              icon: const Icon(
-                Icons.save_outlined,
-                color: Colors.white,
-                size: 20,
+          saveButton(themeColor),
+        ],
+      ),
+    );
+  }
+
+  Container saveButton(Color themeColor) {
+    return Container(
+      padding: const EdgeInsets.all(24.0),
+      decoration: BoxDecoration(color: Colors.white),
+      child: ElevatedButton.icon(
+        onPressed: () {
+          // Save logic here
+        },
+        icon: const Icon(Icons.save_outlined, color: Colors.white, size: 20),
+        label: const Text(
+          'Save Changes',
+          style: TextStyle(
+            color: Colors.white,
+            fontSize: 16,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        style: ElevatedButton.styleFrom(
+          backgroundColor: themeColor,
+          minimumSize: const Size(double.infinity, 54),
+          elevation: 0,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Container infoAlert() {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.blue[50],
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(Icons.info_outline, color: Colors.blue[400], size: 20),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Text(
+              'Your name and city will be visible on your public profile. You can change these settings at any time in your privacy dashboard.',
+              style: TextStyle(
+                color: Colors.blue[800],
+                fontSize: 12,
+                height: 1.5,
               ),
-              label: const Text(
-                'Save Changes',
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Container locationInput() {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.02),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'City / Location',
+            style: TextStyle(color: Colors.grey[600], fontSize: 12),
+          ),
+          const SizedBox(height: 8),
+          _buildCustomTextField(
+            controller: _cityController,
+            icon: Icons.location_on_outlined,
+          ),
+          const SizedBox(height: 16),
+
+          // Location suggestion chips
+          SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: Row(
+              children: [
+                _buildDetectLocationChip(),
+                const SizedBox(width: 8),
+                _buildStandardChip('London'),
+                const SizedBox(width: 8),
+                _buildStandardChip('New York'),
+                const SizedBox(width: 8),
+                _buildStandardChip('Paris'),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Container nameInput() {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.02),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Full Name',
+            style: TextStyle(color: Colors.grey[600], fontSize: 12),
+          ),
+          const SizedBox(height: 8),
+          _buildCustomTextField(
+            controller: _nameController,
+            icon: Icons.person_outline,
+          ),
+          const SizedBox(height: 12),
+          Row(
+            children: [
+              Icon(Icons.info_outline, size: 14, color: Colors.grey[500]),
+              const SizedBox(width: 6),
+              Text(
+                'Use your real name for verification purposes.',
                 style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
+                  color: Colors.grey[500],
+                  fontSize: 11,
+                  fontStyle: FontStyle.italic,
                 ),
               ),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: themeColor,
-                minimumSize: const Size(double.infinity, 54),
-                elevation: 0,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Center profilePhotoSection(Color themeColor) {
+    return Center(
+      child: Column(
+        children: [
+          Stack(
+            children: [
+              Container(
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  border: Border.all(
+                    color: themeColor.withValues(alpha: 0.3),
+                    width: 3,
+                  ),
+                ),
+                child: const CircleAvatar(
+                  radius: 45,
+                  backgroundImage: NetworkImage(
+                    'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=150&q=80',
+                  ),
                 ),
               ),
+              Positioned(
+                bottom: 0,
+                right: 0,
+                child: Container(
+                  padding: const EdgeInsets.all(6),
+                  decoration: BoxDecoration(
+                    color: themeColor,
+                    shape: BoxShape.circle,
+                    border: Border.all(color: Colors.white, width: 2),
+                  ),
+                  child: const Icon(
+                    Icons.camera_alt,
+                    color: Colors.white,
+                    size: 14,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Text(
+            'Change Profile Photo',
+            style: TextStyle(
+              color: themeColor,
+              fontWeight: FontWeight.bold,
+              fontSize: 13,
             ),
           ),
         ],
