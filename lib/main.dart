@@ -1,5 +1,7 @@
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:hunargah/dashboards/main_dashboard.dart';
+import 'firebase_options.dart';
 import 'package:hunargah/screens/course_playlist_screen.dart';
 import 'package:hunargah/screens/edit_profile_screen.dart';
 import 'package:hunargah/screens/language_selector_screen.dart';
@@ -17,7 +19,12 @@ import 'package:hunargah/screens/terms_and_conditions_screen.dart';
 import 'package:hunargah/screens/ustad_profile_screen.dart';
 import 'package:hunargah/screens/video_player_screen.dart';
 
-void main() {
+void main() async {
+  // Ensure Flutter bindings are initialized before running the app
+  WidgetsFlutterBinding.ensureInitialized();
+
+  // Initialize Firebase with platform-specific options
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   runApp(const MainApp());
 }
 

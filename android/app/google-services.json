@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "1030513018501",
+    "project_id": "hunargah-app",
+    "storage_bucket": "hunargah-app.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1030513018501:android:f3074806995a8386b90bec",
+        "android_client_info": {
+          "package_name": "com.example.hunargah"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBpJE5NlHL6PpTFb6AIm2jP6bY9zwaUiKc"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

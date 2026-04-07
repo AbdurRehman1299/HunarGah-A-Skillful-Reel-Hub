@@ -1,3 +1,4 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
 class SplashScreen extends StatefulWidget {
@@ -11,12 +12,23 @@ class _SplashScreenState extends State<SplashScreen> {
   @override
   void initState() {
     super.initState();
-    // Automatically navigate to Login Screen after 1 second
-    Future.delayed(const Duration(seconds: 2), () {
-      if (mounted) {
-        Navigator.pushReplacementNamed(context, '/login');
-      }
-    });
+    _initializeApp();
+  }
+
+  Future<void> _initializeApp() async {
+    await Future.delayed(const Duration(seconds: 2));
+
+    // Check Firebase Authentication
+    if (!mounted) return;
+
+    User? currentUser = FirebaseAuth.instance.currentUser;
+    if (currentUser != null) {
+      // User is logged in
+      Navigator.pushReplacementNamed(context, '/dashboard');
+    } else {
+      // User is not logged in
+      Navigator.pushReplacementNamed(context, '/signup');
+    }
   }
 
   @override
