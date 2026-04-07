@@ -1,3 +1,5 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'dart:async';
 import 'package:smooth_page_indicator/smooth_page_indicator.dart';
@@ -147,8 +149,32 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
 
   ElevatedButton nextButton(BuildContext context, Color themeColor) {
     return ElevatedButton(
-      onPressed: () {
-        Navigator.pushReplacementNamed(context, '/language');
+      onPressed: () async {
+        final navigator = Navigator.of(context);
+        final scaffoldMessenger = ScaffoldMessenger.of(context);
+
+        String? uid = FirebaseAuth.instance.currentUser?.uid;
+
+        if (uid != null) {
+          try {
+            await FirebaseFirestore.instance
+                .collection('users')
+                .doc(uid)
+                .update({
+                  'onboardingStep': 1, // Mark onboarding as completed
+                });
+
+            if (!mounted) return;
+
+            navigator.pushReplacementNamed('/language');
+          } catch (e) {
+            if (!mounted) return;
+
+            scaffoldMessenger.showSnackBar(
+              SnackBar(content: Text('Error saving onboarding status: $e')),
+            );
+          }
+        }
       },
       style: ElevatedButton.styleFrom(
         backgroundColor: themeColor,

@@ -43,7 +43,7 @@ class _SignupScreenState extends State<SignupScreen> {
               FieldValue.serverTimestamp(), // Store account creation time
           'city':
               '', // Leaving this blank so user can update it later in profile settings
-          'onboardingStep': 1,
+          'onboardingStep': 0,
           'language': '',
           'skills': [],
           'profileImageUrl': '',

@@ -37,7 +37,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
         if (userDoc.exists) {
           // Extract the onboarding step
-          int step = 1;
+          int step = 0;
 
           // Safely check if the field exists
           Map<String, dynamic>? data = userDoc.data() as Map<String, dynamic>?;
@@ -48,7 +48,9 @@ class _LoginScreenState extends State<LoginScreen> {
           // Route the user based on their onboarding step
           if (!mounted) return;
 
-          if (step == 1) {
+          if (step == 0) {
+            Navigator.pushReplacementNamed(context, '/onboarding');
+          } else if (step == 1) {
             ScaffoldMessenger.of(context).showSnackBar(
               const SnackBar(
                 content: Text(
