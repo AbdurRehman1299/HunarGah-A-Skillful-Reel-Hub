@@ -81,35 +81,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
             },
           ),
 
-          // -- Header Area (Skip Button) --
-          headerSection(),
-
           // -- Footer Area (Indicator and Next Button) --
           footerSection(themeColor, context),
-        ],
-      ),
-    );
-  }
-
-  SafeArea headerSection() {
-    return SafeArea(
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.end,
-        children: [
-          Padding(
-            padding: const EdgeInsets.only(top: 8.0, right: 16.0),
-            child: TextButton(
-              onPressed: () {},
-              child: const Text(
-                'Skip',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontWeight: FontWeight.bold,
-                  fontSize: 14,
-                ),
-              ),
-            ),
-          ),
         ],
       ),
     );
