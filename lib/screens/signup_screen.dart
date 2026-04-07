@@ -1,3 +1,5 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
 class SignupScreen extends StatefulWidget {
@@ -12,6 +14,76 @@ class _SignupScreenState extends State<SignupScreen> {
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
+
+  Future<void> _registerUser(
+    String email,
+    String password,
+    String username,
+  ) async {
+    try {
+      // Create a user in Firebase Authentication
+      UserCredential userCredential = await FirebaseAuth.instance
+          .createUserWithEmailAndPassword(
+            email: email.trim(),
+            password: password.trim(),
+          );
+
+      User? user = userCredential.user;
+
+      if (user != null) {
+        // Attach the username to the Firebase user profile
+        await user.updateDisplayName(username.trim());
+
+        // Create user profile in Firestore database
+        await FirebaseFirestore.instance.collection('users').doc(user.uid).set({
+          'uid': user.uid,
+          'username': username.trim(),
+          'email': email.trim(),
+          'createdAt':
+              FieldValue.serverTimestamp(), // Store account creation time
+          'city':
+              '', // Leaving this blank so user can update it later in profile settings
+          'profileImageUrl': '',
+        });
+      }
+
+      // Successfully registered, Navigate to the login screen
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Account created successfully! Please log in.'),
+            backgroundColor: Colors.green,
+          ),
+        );
+        Navigator.pushReplacementNamed(context, '/login');
+      }
+    } on FirebaseAuthException catch (e) {
+      String errorMessage = 'An error occurred. Please try again.';
+
+      if (e.code == 'weak-password') {
+        errorMessage = 'The password provided is too weak.';
+      } else if (e.code == 'email-already-in-use') {
+        errorMessage = 'An account already exists for that email.';
+      } else if (e.code == 'invalid-email') {
+        errorMessage = 'The email address is not valid.';
+      }
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(errorMessage), backgroundColor: Colors.red),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('An unexpected error occurred: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
 
   // State to hide/show the password
   bool _obscurePassword = true;
@@ -105,7 +177,7 @@ class _SignupScreenState extends State<SignupScreen> {
               const SizedBox(height: 32),
 
               // -- SignUp Button --
-              loginButton(themeColor),
+              signupButton(themeColor),
 
               const SizedBox(height: 16),
 
@@ -119,6 +191,8 @@ class _SignupScreenState extends State<SignupScreen> {
               const SizedBox(height: 16),
 
               alreadyAccount(context, themeColor),
+
+              const SizedBox(height: 40),
             ],
           ),
         ),
@@ -191,12 +265,22 @@ class _SignupScreenState extends State<SignupScreen> {
     );
   }
 
-  SizedBox loginButton(Color themeColor) {
+  SizedBox signupButton(Color themeColor) {
     return SizedBox(
       width: double.infinity,
       height: 50,
       child: ElevatedButton(
-        onPressed: () {},
+        onPressed: () {
+          if (_emailController.text.isNotEmpty &&
+              _passwordController.text.isNotEmpty &&
+              _nameController.text.isNotEmpty) {
+            _registerUser(
+              _emailController.text,
+              _passwordController.text,
+              _nameController.text,
+            );
+          }
+        },
         style: ElevatedButton.styleFrom(
           backgroundColor: themeColor,
           shape: RoundedRectangleBorder(
