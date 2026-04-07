@@ -1,3 +1,5 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:hunargah/components/app_bar.dart';
 
@@ -10,7 +12,33 @@ class LanguageSelectorScreen extends StatefulWidget {
 
 class _LanguageSelectorScreenState extends State<LanguageSelectorScreen> {
   // Keeps track of which language the user tapped
-  String? _selectedLanguage;
+  String? selectedLanguage;
+
+  Future<void> _saveLanguagePreference() async {
+    if (selectedLanguage == null) return;
+
+    final uid = FirebaseAuth.instance.currentUser?.uid;
+    if (uid != null) {
+      try {
+        await FirebaseFirestore.instance.collection('users').doc(uid).update({
+          'language': selectedLanguage,
+          'onboardingStep': 2, // Mark language as completed
+        });
+
+        if (!mounted) return;
+        Navigator.pushNamed(context, '/skills');
+      } catch (e) {
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              'Failed to save language preference. Please try again.',
+            ),
+          ),
+        );
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -95,13 +123,9 @@ class _LanguageSelectorScreenState extends State<LanguageSelectorScreen> {
       width: double.infinity,
       height: 54,
       child: ElevatedButton(
-        onPressed: _selectedLanguage == null
-            ? null
-            : () {
-                Navigator.pushNamed(context, '/skills');
-              },
+        onPressed: selectedLanguage != null ? _saveLanguagePreference : null,
         style: ElevatedButton.styleFrom(
-          backgroundColor: _selectedLanguage == null
+          backgroundColor: selectedLanguage == null
               ? Colors.grey[300]
               : themeColor,
           disabledBackgroundColor: Colors.grey[300],
@@ -118,7 +142,7 @@ class _LanguageSelectorScreenState extends State<LanguageSelectorScreen> {
               style: TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.bold,
-                color: _selectedLanguage == null
+                color: selectedLanguage == null
                     ? Colors.grey[500]
                     : Colors.white,
               ),
@@ -128,9 +152,7 @@ class _LanguageSelectorScreenState extends State<LanguageSelectorScreen> {
 
             Icon(
               Icons.arrow_forward,
-              color: _selectedLanguage == null
-                  ? Colors.grey[500]
-                  : Colors.white,
+              color: selectedLanguage == null ? Colors.grey[500] : Colors.white,
               size: 18,
             ),
           ],
@@ -205,12 +227,12 @@ class _LanguageSelectorScreenState extends State<LanguageSelectorScreen> {
     required Color themeColor,
   }) {
     // Check if the specific card is the one currently selected
-    bool isSelected = _selectedLanguage == id;
+    bool isSelected = selectedLanguage == id;
 
     return GestureDetector(
       onTap: () {
         setState(() {
-          _selectedLanguage = id;
+          selectedLanguage = id;
         });
       },
       child: AnimatedContainer(
