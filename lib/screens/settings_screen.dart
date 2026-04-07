@@ -37,12 +37,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
           children: [
             const SizedBox(height: 20),
 
-            // --- 1. PROFILE HEADER ---
+            // -- Profile Header --
             _buildProfileHeader(),
+
             const SizedBox(height: 32),
 
-            // --- 2. ACCOUNT & APPEARANCE ---
+            // -- Account & Appearance --
             _buildSectionHeader('ACCOUNT & APPEARANCE'),
+
             _buildSettingsTile(
               icon: Icons.person_outline,
               title: 'Personal Information',
@@ -70,10 +72,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
               subtitle: 'English (US)',
               iconColor: themeColor,
             ),
+
             const SizedBox(height: 24),
 
-            // --- 3. SECURITY & PRIVACY ---
+            // -- Security & Privacy --
             _buildSectionHeader('SECURITY & PRIVACY'),
+
             _buildSettingsTile(
               icon: Icons.lock_outline,
               title: 'Password & Security',
@@ -92,10 +96,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
               subtitle: 'Push, Email, and SMS',
               iconColor: themeColor,
             ),
+
             const SizedBox(height: 24),
 
-            // --- 4. SUPPORT & HELP ---
+            // -- Support & Help --
             _buildSectionHeader('SUPPORT & HELP'),
+
             _buildSettingsTile(
               icon: Icons.help_outline,
               title: 'Help Center',
@@ -114,13 +120,15 @@ class _SettingsScreenState extends State<SettingsScreen> {
               subtitle: '',
               iconColor: themeColor,
             ),
+
             const SizedBox(height: 24),
 
-            // --- 5. PREMIUM UPGRADE CARD ---
+            // -- Premium Upgrade Card --
             _buildPremiumCard(),
+
             const SizedBox(height: 16),
 
-            // --- 6. SIGN OUT BUTTON ---
+            // -- Sign Out Button --
             _buildSettingsTile(
               icon: Icons.logout,
               title: 'Sign Out',
@@ -135,12 +143,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
             const SizedBox(height: 32),
 
-            // --- 7. FOOTER ---
+            // -- Footer --
             Text(
-              'Version 2.4.1 (Build 890)',
+              'Version 1.0.0',
               style: TextStyle(color: Colors.grey[500], fontSize: 11),
             ),
+
             const SizedBox(height: 4),
+
             Text(
               'MADE WITH ❤️ FOR MODERN USERS',
               style: TextStyle(
@@ -156,7 +166,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
-  // 🛠️ Helper Methods
+  // Reusable Widget: Profile Header
 
   Widget _buildProfileHeader() {
     final themeColor = Theme.of(context).primaryColor;
@@ -230,6 +240,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
+  // Reusable Widget: Section Header
   Widget _buildSectionHeader(String title) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 8.0),
@@ -248,6 +259,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
+  // Reusable Widget: Settings Tile
   Widget _buildSettingsTile({
     required IconData icon,
     required String title,
@@ -298,6 +310,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
+  // Reusable Widget: Premium Upgrade Card
   Widget _buildPremiumCard() {
     final themeColor = Theme.of(context).primaryColor;
 
