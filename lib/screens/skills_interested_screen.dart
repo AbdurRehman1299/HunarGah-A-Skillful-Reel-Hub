@@ -1,3 +1,5 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:hunargah/components/app_bar.dart';
 
@@ -27,6 +29,30 @@ class _SkillsInterestedScreenState extends State<SkillsInterestedScreen> {
     SkillCategory('Digital Marketing', Icons.lightbulb_outline),
     SkillCategory('Photography', Icons.camera_alt_outlined),
   ];
+
+  Future<void> _saveSelectedSkills() async {
+    final navigator = Navigator.of(context);
+    final messenger = ScaffoldMessenger.of(context);
+    final uid = FirebaseAuth.instance.currentUser?.uid;
+
+    if (uid != null) {
+      try {
+        await FirebaseFirestore.instance.collection('users').doc(uid).update({
+          'skills': _selectedSkills
+              .toList(), // Convert Set to List for Firestore
+          'onboardingStep': 3, // Mark skills selection as completed
+        });
+
+        navigator.pushNamed('/profile');
+      } catch (e) {
+        messenger.showSnackBar(
+          const SnackBar(
+            content: Text('Failed to save skills. Please try again.'),
+          ),
+        );
+      }
+    }
+  }
 
   // Function to toggle skill on or off
   void _toggleSkill(String skillName) {
@@ -212,11 +238,7 @@ class _SkillsInterestedScreenState extends State<SkillsInterestedScreen> {
       width: double.infinity,
       height: 54,
       child: ElevatedButton(
-        onPressed: hasEnoughSkills
-            ? () {
-                Navigator.pushReplacementNamed(context, '/profile');
-              }
-            : null,
+        onPressed: hasEnoughSkills ? _saveSelectedSkills : null,
         style: ElevatedButton.styleFrom(
           backgroundColor: hasEnoughSkills ? themeColor : Colors.grey[300],
           disabledBackgroundColor: Colors.grey[300],
