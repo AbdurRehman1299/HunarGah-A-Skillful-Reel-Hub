@@ -9,6 +9,7 @@ import 'package:hunargah/screens/onboarding_screen.dart';
 import 'package:hunargah/screens/privacy_and_policy_screen.dart';
 import 'package:hunargah/screens/profile_picture_screen.dart';
 import 'package:hunargah/screens/quiz_dialog_screen.dart';
+import 'package:hunargah/screens/settings_screen.dart';
 import 'package:hunargah/screens/signup_screen.dart';
 import 'package:hunargah/screens/skills_interested_screen.dart';
 import 'package:hunargah/screens/splash_screen.dart';
@@ -42,6 +43,7 @@ class MainApp extends StatelessWidget {
         '/skills': (context) => const SkillsInterestedScreen(),
         '/profile': (context) => const ProfilePictureScreen(),
         '/dashboard': (context) => const MainDashboard(),
+        '/settings': (context) => const SettingsScreen(),
         '/edit-profile': (context) => const EditProfileScreen(),
         '/ustad-profile': (context) => const UstadProfileScreen(),
         '/course-playlist': (context) => const CoursePlaylistScreen(),

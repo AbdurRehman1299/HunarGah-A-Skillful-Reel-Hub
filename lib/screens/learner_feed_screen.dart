@@ -113,7 +113,12 @@ class _LearnerFeedScreenState extends State<LearnerFeedScreen> {
 
             const Spacer(),
 
-            const Icon(Icons.settings_outlined, color: Colors.white),
+            IconButton(
+              onPressed: () {
+                Navigator.pushNamed(context, '/settings');
+              },
+              icon: const Icon(Icons.settings_outlined, color: Colors.white),
+            ),
           ],
         ),
       ),
