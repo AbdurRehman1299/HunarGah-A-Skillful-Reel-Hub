@@ -1,4 +1,7 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:video_player/video_player.dart';
 
 class LearnerFeedScreen extends StatefulWidget {
   const LearnerFeedScreen({super.key});
@@ -10,61 +13,91 @@ class LearnerFeedScreen extends StatefulWidget {
 class _LearnerFeedScreenState extends State<LearnerFeedScreen> {
   // Controls the vertical scrolling of videos
   final PageController _pageController = PageController();
+  String? _userImage;
+  bool _isLoading = true;
 
-  // Mock data to check different videos in feed
-  final List<Map<String, dynamic>> _mockFeedData = [
-    {
-      'username': '@Ustad Ali',
-      'title': 'Basics of Electric Circuit Repair ⚡',
-      'description':
-          'In this lesson, we will learn how to identify common circuit faults in home appliances.',
-      'tags': '#Skills #Electrician',
-      'audio': 'Ustad Ali • Original sound',
-      'likes': '3.1M',
-      'comments': '45.4K',
-      'saves': '233.8K',
-      'shares': '183.9K',
-      'image': 'assets/images/onboarding/onboarding1.jpg',
-    },
-    {
-      'username': '@Ustad Fatima',
-      'title': 'Advanced Tailoring: Necklines ✂️',
-      'description':
-          'Master the art of creating perfect boat necks and V-necks for traditional wear.',
-      'tags': '#Tailoring #Fashion #Skills',
-      'audio': 'Fatima • sewing machine sounds',
-      'likes': '1.2M',
-      'comments': '12K',
-      'saves': '95K',
-      'shares': '40K',
-      'image': 'assets/images/onboarding/onboarding3.jpg',
-    },
-  ];
+  @override
+  void initState() {
+    super.initState();
+    _fetchCurrentUser();
+  }
+
+  Future<void> _fetchCurrentUser() async {
+    final messenger = ScaffoldMessenger.of(context);
+    try {
+      final uid = FirebaseAuth.instance.currentUser?.uid;
+
+      if (uid != null) {
+        DocumentSnapshot userDoc = await FirebaseFirestore.instance
+            .collection('users')
+            .doc(uid)
+            .get();
+
+        if (userDoc.exists) {
+          final data = userDoc.data() as Map<String, dynamic>?;
+          if (mounted) {
+            setState(() {
+              _userImage = data?['profileImageUrl'];
+              _isLoading = false;
+            });
+          }
+        }
+      }
+    } catch (e) {
+      messenger.showSnackBar(
+        SnackBar(content: Text('Error fetching user data: $e')),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
+    final themeColor = Theme.of(context).primaryColor;
+
     return Scaffold(
-      backgroundColor: Colors.transparent,
+      backgroundColor: Colors.black,
       body: Stack(
         children: [
           // -- The Vertical Scrolling Feed --
-          verticalScrollingFeed(),
+          StreamBuilder<QuerySnapshot>(
+            stream: FirebaseFirestore.instance.collection('videos').snapshots(),
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return Center(
+                  child: CircularProgressIndicator(color: themeColor),
+                );
+              }
+
+              if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+                return const Center(
+                  child: Text(
+                    'No videos available yet. Check back later!',
+                    style: TextStyle(color: Colors.white70, fontSize: 16),
+                  ),
+                );
+              }
+
+              final video = snapshot.data!.docs;
+
+              return PageView.builder(
+                controller: _pageController,
+                scrollDirection: Axis.vertical,
+                itemCount: video.length,
+                itemBuilder: (context, index) {
+                  final videoData = video[index].data() as Map<String, dynamic>;
+                  final videoId = video[index].id;
+
+                  return VideoFeedItem(videoData: videoData, videoId: videoId);
+                },
+              );
+            },
+          ),
 
           // -- Top Floating App Bar --
           // Posiioned at the top of the content
           floatingAppBar(),
         ],
       ),
-    );
-  }
-
-  PageView verticalScrollingFeed() {
-    return PageView.builder(
-      controller: _pageController,
-      scrollDirection: Axis.vertical,
-      itemCount: _mockFeedData.length,
-      itemBuilder: (context, index) {
-        return _buildFeedItem(_mockFeedData[index]);
-      },
     );
   }
 
@@ -122,37 +155,6 @@ class _LearnerFeedScreenState extends State<LearnerFeedScreen> {
           ],
         ),
       ),
-    );
-  }
-
-  // Reusable Widget: The individual video screen overlay
-  Widget _buildFeedItem(Map<String, dynamic> data) {
-    final themeColor = Theme.of(context).primaryColor;
-
-    return Stack(
-      fit: StackFit.expand,
-      children: [
-        Image.asset(data['image'], fit: BoxFit.cover),
-        Container(
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.bottomCenter,
-              end: Alignment.topCenter,
-              colors: [
-                Colors.black.withValues(alpha: 0.8),
-                Colors.black.withValues(alpha: 0.0),
-                Colors.black.withValues(alpha: 0.0),
-              ],
-              stops: const [0.0, 0.4, 1.0],
-            ),
-          ),
-        ),
-
-        rightActionButtons(themeColor, data),
-
-        // -- Bottom Left Content --
-        bottomLeftContent(data, themeColor),
-      ],
     );
   }
 
@@ -354,6 +356,351 @@ class _LearnerFeedScreenState extends State<LearnerFeedScreen> {
       alignment: Alignment.center,
       transform: isShare ? Matrix4.rotationY(3.14159) : Matrix4.identity(),
       child: Icon(icon, color: Colors.white, size: 32),
+    );
+  }
+}
+
+class VideoFeedItem extends StatefulWidget {
+  final Map<String, dynamic> videoData;
+  final String videoId;
+
+  const VideoFeedItem({
+    super.key,
+    required this.videoData,
+    required this.videoId,
+  });
+
+  @override
+  State<VideoFeedItem> createState() => _VideoFeedItemState();
+}
+
+class _VideoFeedItemState extends State<VideoFeedItem> {
+  late VideoPlayerController _videoPlayerController;
+  bool _isVideoInitialized = false;
+  final String? _currentUserId = FirebaseAuth.instance.currentUser?.uid;
+
+  @override
+  void initState() {
+    super.initState();
+    _initializeVideo();
+  }
+
+  void _initializeVideo() {
+    // Load the video from the provided URL
+    _videoPlayerController =
+        VideoPlayerController.networkUrl(
+            Uri.parse(widget.videoData['videoUrl']),
+          )
+          ..initialize().then((_) {
+            setState(() {
+              _isVideoInitialized = true;
+            });
+            _videoPlayerController.setLooping(true);
+            _videoPlayerController.play();
+          });
+  }
+
+  @override
+  void dispose() {
+    _videoPlayerController.dispose();
+    super.dispose();
+  }
+
+  void _showDummySnackBar(String text) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('$text coming soon!'),
+        duration: const Duration(seconds: 1),
+      ),
+    );
+  }
+
+  Future<void> _toggleLike() async {
+    if (_currentUserId == null) return;
+
+    final videoRef = FirebaseFirestore.instance
+        .collection('videos')
+        .doc(widget.videoId);
+
+    List<dynamic> likedBy = widget.videoData['likedBy'] ?? [];
+    final isLiked = likedBy.contains(_currentUserId);
+
+    if (isLiked) {
+      await videoRef.update({
+        'likedBy': FieldValue.arrayRemove([_currentUserId]),
+        'likes': FieldValue.increment(-1),
+      });
+    } else {
+      await videoRef.update({
+        'likedBy': FieldValue.arrayUnion([_currentUserId]),
+        'likes': FieldValue.increment(1),
+      });
+    }
+  }
+
+  Future<void> _toggleSave() async {
+    if (_currentUserId == null) return;
+
+    final videoRef = FirebaseFirestore.instance
+        .collection('videos')
+        .doc(widget.videoId);
+
+    List<dynamic> savedBy = widget.videoData['savedBy'] ?? [];
+    final isSaved = savedBy.contains(_currentUserId);
+
+    if (isSaved) {
+      await videoRef.update({
+        'savedBy': FieldValue.arrayRemove([_currentUserId]),
+        'saves': FieldValue.increment(-1),
+      });
+    } else {
+      await videoRef.update({
+        'savedBy': FieldValue.arrayUnion([_currentUserId]),
+        'saves': FieldValue.increment(1),
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final themeColor = Theme.of(context).primaryColor;
+
+    final likes = widget.videoData['likes'] ?? 0;
+    final saves = widget.videoData['saves'] ?? 0;
+    final likedBy = widget.videoData['likedBy'] ?? [];
+    final savedBy = widget.videoData['savedBy'] ?? [];
+
+    final isLiked = _currentUserId != null && likedBy.contains(_currentUserId);
+    final isSaved = _currentUserId != null && savedBy.contains(_currentUserId);
+
+    return Stack(
+      fit: StackFit.expand,
+      children: [
+        // -- Video Player --
+        GestureDetector(
+          onTap: () {
+            // Play/Pause on tap
+            setState(() {
+              _videoPlayerController.value.isPlaying
+                  ? _videoPlayerController.pause()
+                  : _videoPlayerController.play();
+            });
+          },
+          child: _isVideoInitialized
+              ? SizedBox.expand(
+                  child: FittedBox(
+                    fit: BoxFit.cover,
+                    child: SizedBox(
+                      width: _videoPlayerController.value.size.width,
+                      height: _videoPlayerController.value.size.height,
+                      child: VideoPlayer(_videoPlayerController),
+                    ),
+                  ),
+                )
+              : Center(child: CircularProgressIndicator(color: themeColor)),
+        ),
+
+        // -- Play Icon Overlay when paused --
+        if (!_videoPlayerController.value.isPlaying && _isVideoInitialized)
+          const Center(
+            child: Icon(Icons.play_arrow, color: Colors.white70, size: 64),
+          ),
+
+        // -- Bottom Gradient Overlay for Text Visibility --
+        Container(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.bottomCenter,
+              end: Alignment.topCenter,
+              colors: [Colors.black.withValues(alpha: 0.8), Colors.transparent],
+              stops: const [0.0, 0.4],
+            ),
+          ),
+        ),
+
+        // -- Right Action Buttons --
+        Positioned(
+          right: 12,
+          bottom: 20,
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.end,
+            children: [
+              // Uploader Avatar
+              SizedBox(
+                height: 60,
+                width: 50,
+                child: Stack(
+                  alignment: Alignment.topCenter,
+                  children: [
+                    const CircleAvatar(
+                      radius: 24,
+                      backgroundImage: NetworkImage(
+                        'https://i.pravatar.cc/150?img=11',
+                      ),
+                    ),
+                    Positioned(
+                      bottom: 0,
+                      child: GestureDetector(
+                        onTap: () => _showDummySnackBar('Subscribe'),
+                        child: Container(
+                          padding: const EdgeInsets.all(2),
+                          decoration: BoxDecoration(
+                            color: themeColor,
+                            shape: BoxShape.circle,
+                          ),
+                          child: const Icon(
+                            Icons.add,
+                            color: Colors.white,
+                            size: 14,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+
+              const SizedBox(height: 20),
+
+              // -- Like Button --
+              _buildActionButton(
+                icon: isLiked ? Icons.favorite : Icons.favorite_border,
+                color: isLiked ? Colors.red : Colors.white,
+                label: likes.toString(),
+                onTap: _toggleLike,
+              ),
+
+              // -- Comment Button --
+              _buildActionButton(
+                icon: Icons.chat_bubble_outline,
+                label: '12',
+                onTap: () => _showDummySnackBar('Comments'),
+              ),
+
+              // -- Save Button --
+              _buildActionButton(
+                icon: isSaved ? Icons.bookmark : Icons.bookmark_border,
+                color: isSaved ? Colors.amber : Colors.white,
+                label: saves.toString(),
+                onTap: _toggleSave,
+              ),
+
+              // -- Share Button --
+              _buildActionButton(
+                icon: Icons.reply,
+                label: 'Share',
+                isShare: true,
+                onTap: () => _showDummySnackBar("Share"),
+              ),
+            ],
+          ),
+        ),
+
+        // -- Bottom Left Content --
+        Positioned(
+          left: 16,
+          bottom: 20,
+          right: 80,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                widget.videoData['username'] ?? '@Unknown',
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 16,
+                ),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                widget.videoData['title'] ?? '',
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 15,
+                ),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                widget.videoData['description'] ?? '',
+                style: const TextStyle(color: Colors.white70, fontSize: 13),
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+              ),
+              const SizedBox(height: 4),
+              Text(
+                widget.videoData['tags'] ?? '',
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 13,
+                ),
+              ),
+              const SizedBox(height: 12),
+              Row(
+                children: [
+                  const Icon(Icons.music_note, color: Colors.white, size: 16),
+                  const SizedBox(width: 8),
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 4,
+                    ),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withValues(alpha: 0.2),
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(
+                        color: Colors.white.withValues(alpha: 0.3),
+                      ),
+                    ),
+                    child: Text(
+                      widget.videoData['audio'] ?? 'Original Audio',
+                      style: const TextStyle(color: Colors.white, fontSize: 11),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  // Reusable Widget: Build Action Buttons
+  Widget _buildActionButton({
+    required IconData icon,
+    required String label,
+    required VoidCallback onTap,
+    Color color = Colors.white,
+    bool isShare = false,
+  }) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 16.0),
+      child: GestureDetector(
+        onTap: onTap,
+        child: Column(
+          children: [
+            Transform(
+              alignment: Alignment.center,
+              transform: isShare
+                  ? Matrix4.rotationY(3.14159)
+                  : Matrix4.identity(),
+              child: Icon(icon, color: color, size: 32),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              label,
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 11,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }

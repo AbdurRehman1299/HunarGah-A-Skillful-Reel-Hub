@@ -17,16 +17,15 @@ class _SplashScreenState extends State<SplashScreen> {
   }
 
   Future<void> _initializeApp() async {
-    final messenger = ScaffoldMessenger.of(context);
     try {
-      final navigator = Navigator.of(context);
-
       await Future.delayed(const Duration(seconds: 2));
 
       User? currentUser = FirebaseAuth.instance.currentUser;
 
+      if (!mounted) return;
+
       if (currentUser == null) {
-        navigator.pushReplacementNamed('/signup');
+        Navigator.of(context).pushReplacementNamed('/signup');
         return;
       }
 
@@ -35,8 +34,10 @@ class _SplashScreenState extends State<SplashScreen> {
           .doc(currentUser.uid)
           .get();
 
+      if (!mounted) return;
+
       if (!userDoc.exists) {
-        navigator.pushReplacementNamed('/signup');
+        Navigator.of(context).pushReplacementNamed('/signup');
         return;
       }
 
@@ -44,20 +45,26 @@ class _SplashScreenState extends State<SplashScreen> {
       int step = data?['onboardingStep'] ?? 0;
 
       if (step == 0) {
-        navigator.pushReplacementNamed('/onboarding');
+        Navigator.of(context).pushReplacementNamed('/onboarding');
       } else if (step == 1) {
-        navigator.pushReplacementNamed('/language');
+        Navigator.of(context).pushReplacementNamed('/language');
       } else if (step == 2) {
-        navigator.pushReplacementNamed('/skills');
+        Navigator.of(context).pushReplacementNamed('/skills');
       } else if (step == 3) {
-        navigator.pushReplacementNamed('/profile-picture');
+        Navigator.of(context).pushReplacementNamed('/profile-picture');
       } else {
-        navigator.pushReplacementNamed('/dashboard');
+        Navigator.of(context).pushReplacementNamed('/dashboard');
       }
     } catch (e) {
-      messenger.showSnackBar(
-        SnackBar(content: Text('Error initializing app: $e')),
-      );
+      debugPrint('Splash Screen Error $e');
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Error initializing app: $e')));
+        if (mounted) {
+          Navigator.of(context).pushReplacementNamed('/login');
+        }
+      });
     }
   }
 
