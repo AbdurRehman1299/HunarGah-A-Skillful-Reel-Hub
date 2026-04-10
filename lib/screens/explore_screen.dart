@@ -1,3 +1,6 @@
+import 'dart:convert';
+
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:hunargah/bottom_sheets/filter_bottom_sheet.dart';
 import 'package:hunargah/components/app_bar.dart';
@@ -10,6 +13,17 @@ class ExploreScreen extends StatefulWidget {
 }
 
 class _ExploreScreenState extends State<ExploreScreen> {
+  String _searchQuery = '';
+  String _selectedSkill = 'All';
+
+  final List<String> _trendingSkills = [
+    'All',
+    'AC Repair',
+    'Graphic Designing',
+    'Stitching',
+    'Cooking',
+  ];
+
   @override
   Widget build(BuildContext context) {
     final themeColor = Theme.of(context).primaryColor;
@@ -40,7 +54,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
 
             const SizedBox(height: 16),
 
-            // Horizontal Scrolling skill pills
+            // -- Horizontal Scrolling skill pills --
             trendingSkillPills(),
 
             const SizedBox(height: 32),
@@ -48,27 +62,89 @@ class _ExploreScreenState extends State<ExploreScreen> {
             // -- Top Ustads --
             topUstadsText(),
 
+            const SizedBox(height: 10),
+
             // -- List Ustad Cards --
-            _buildUstadCard(
-              name: 'Ustad Ali Raza',
-              skill: 'Expert AC Technician',
-              rating: '4.9',
-              reviews: '1.2k',
-              statusColor: Colors.green,
-            ),
-            _buildUstadCard(
-              name: 'Sajid Mahmood',
-              skill: 'Master Electrician',
-              rating: '4.8',
-              reviews: '850',
-              statusColor: Colors.orange,
-            ),
-            _buildUstadCard(
-              name: 'Chef Imran',
-              skill: 'Culinary Arts',
-              rating: '4.7',
-              reviews: '540',
-              statusColor: Colors.red,
+            StreamBuilder<QuerySnapshot>(
+              stream: FirebaseFirestore.instance
+                  .collection('users')
+                  .where('role', isEqualTo: 'ustad')
+                  .snapshots(),
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return Center(
+                    child: CircularProgressIndicator(color: themeColor),
+                  );
+                }
+
+                if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+                  return const Center(
+                    child: Text('No Ustads found at the moment.'),
+                  );
+                }
+
+                final filteredDocs = snapshot.data!.docs.where((doc) {
+                  final data = doc.data() as Map<String, dynamic>;
+                  final name = (data['username'] ?? '')
+                      .toString()
+                      .toLowerCase();
+                  final skill = (data['skillTitle'] ?? '')
+                      .toString()
+                      .toLowerCase();
+
+                  // Check if the skill pill matches
+                  bool matchesPill = true;
+                  if (_selectedSkill != 'All') {
+                    matchesPill = skill.contains(_selectedSkill.toLowerCase());
+                  }
+
+                  // Check if the typed search query matches Name OR Skill
+                  bool matchesSearch = true;
+                  if (_searchQuery.isNotEmpty) {
+                    matchesSearch =
+                        name.contains(_searchQuery) ||
+                        skill.contains(_searchQuery);
+                  }
+
+                  // Only keep the Ustad if they match Both active filters
+                  return matchesSearch && matchesPill;
+                }).toList();
+
+                if (filteredDocs.isEmpty) {
+                  return const Padding(
+                    padding: EdgeInsets.all(32.0),
+                    child: Center(
+                      child: Text(
+                        'No Ustad matches your search',
+                        style: TextStyle(color: Colors.grey),
+                      ),
+                    ),
+                  );
+                }
+
+                return ListView.builder(
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  itemCount: filteredDocs.length,
+                  itemBuilder: (context, index) {
+                    final data =
+                        filteredDocs[index].data() as Map<String, dynamic>;
+                    final uid = filteredDocs[index].id;
+
+                    return _buildUstadCard(
+                      uid: uid,
+                      name: data['username'] ?? 'Unknown Ustad',
+                      skill: data['skillTitle'] ?? 'Professional',
+                      rating: (data['rating'] ?? 0.0).toString(),
+                      reviews: (data['reviewsCount'] ?? 0.0).toString(),
+                      imageUrl: data['profileImageUrl'],
+                      statusColor: (data['isOnline'] == true)
+                          ? Colors.green
+                          : Colors.red,
+                    );
+                  },
+                );
+              },
             ),
 
             const SizedBox(height: 80),
@@ -102,12 +178,17 @@ class _ExploreScreenState extends State<ExploreScreen> {
     return SingleChildScrollView(
       scrollDirection: Axis.horizontal,
       child: Row(
-        children: [
-          _buildSkillPill('AC Repair', isActive: true),
-          _buildSkillPill('Graphic Designing'),
-          _buildSkillPill('Stitching'),
-          _buildSkillPill('Cooking'),
-        ],
+        children: _trendingSkills.map((skill) {
+          return _buildSkillPill(
+            skill,
+            isActive: _selectedSkill == skill,
+            onTap: () {
+              setState(() {
+                _selectedSkill == skill;
+              });
+            },
+          );
+        }).toList(),
       ),
     );
   }
@@ -146,6 +227,11 @@ class _ExploreScreenState extends State<ExploreScreen> {
         borderRadius: BorderRadius.circular(12),
       ),
       child: TextField(
+        onChanged: (value) {
+          setState(() {
+            _searchQuery = value.toLowerCase();
+          });
+        },
         decoration: InputDecoration(
           icon: Icon(Icons.search, color: Colors.grey[500]),
           hintText: 'Search for skills or Ustad',
@@ -167,23 +253,30 @@ class _ExploreScreenState extends State<ExploreScreen> {
   }
 
   // Reusable Widget: Horizontal Skills Pills
-  Widget _buildSkillPill(String title, {bool isActive = false}) {
+  Widget _buildSkillPill(
+    String title, {
+    required bool isActive,
+    required VoidCallback onTap,
+  }) {
     final themeColor = Theme.of(context).primaryColor;
 
-    return Container(
-      margin: const EdgeInsets.only(right: 12),
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      decoration: BoxDecoration(
-        color: isActive ? themeColor : Colors.grey[50],
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: isActive ? themeColor : Colors.grey[200]!),
-      ),
-      child: Text(
-        title,
-        style: TextStyle(
-          color: isActive ? Colors.white : Colors.grey[800],
-          fontSize: 12,
-          fontWeight: isActive ? FontWeight.bold : FontWeight.normal,
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        margin: const EdgeInsets.only(right: 12),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        decoration: BoxDecoration(
+          color: isActive ? themeColor : Colors.grey[50],
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: isActive ? themeColor : Colors.grey[200]!),
+        ),
+        child: Text(
+          title,
+          style: TextStyle(
+            color: isActive ? Colors.white : Colors.grey[800],
+            fontSize: 12,
+            fontWeight: isActive ? FontWeight.bold : FontWeight.normal,
+          ),
         ),
       ),
     );
@@ -191,11 +284,13 @@ class _ExploreScreenState extends State<ExploreScreen> {
 
   // Reusable Widget: Ustads Profile Card
   Widget _buildUstadCard({
+    required String uid,
     required String name,
     required String skill,
     required String rating,
     required String reviews,
     required Color statusColor,
+    String? imageUrl,
   }) {
     final themeColor = Theme.of(context).primaryColor;
 
@@ -217,7 +312,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
       child: Row(
         children: [
           // -- Avatar with status indicator --
-          profileAvatar(statusColor),
+          profileAvatar(statusColor, imageUrl),
 
           const SizedBox(width: 16),
 
@@ -225,16 +320,16 @@ class _ExploreScreenState extends State<ExploreScreen> {
           profileInfo(name, themeColor, skill, rating, reviews),
 
           // -- Profile Button --
-          profileButton(themeColor),
+          profileButton(themeColor, uid),
         ],
       ),
     );
   }
 
-  OutlinedButton profileButton(Color themeColor) {
+  OutlinedButton profileButton(Color themeColor, String uid) {
     return OutlinedButton(
       onPressed: () {
-        Navigator.pushNamed(context, '/ustad-profile');
+        Navigator.pushNamed(context, '/ustad-profile', arguments: uid);
       },
       style: OutlinedButton.styleFrom(
         side: BorderSide(color: themeColor),
@@ -258,11 +353,15 @@ class _ExploreScreenState extends State<ExploreScreen> {
         children: [
           Row(
             children: [
-              Text(
-                name,
-                style: const TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 14,
+              Expanded(
+                child: Text(
+                  name,
+                  style: const TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 14,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                 ),
               ),
 
@@ -274,7 +373,12 @@ class _ExploreScreenState extends State<ExploreScreen> {
 
           const SizedBox(height: 4),
 
-          Text(skill, style: TextStyle(color: Colors.grey[600], fontSize: 12)),
+          Text(
+            skill,
+            style: TextStyle(color: Colors.grey[600], fontSize: 12),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
 
           const SizedBox(height: 8),
 
@@ -284,11 +388,15 @@ class _ExploreScreenState extends State<ExploreScreen> {
 
               const SizedBox(width: 4),
 
-              Text(
-                rating,
-                style: const TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 12,
+              Expanded(
+                child: Text(
+                  rating,
+                  style: const TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 12,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                 ),
               ),
 
@@ -305,12 +413,31 @@ class _ExploreScreenState extends State<ExploreScreen> {
     );
   }
 
-  Stack profileAvatar(Color statusColor) {
+  Stack profileAvatar(Color statusColor, String? base64String) {
+    ImageProvider? imageProvider;
+
+    if (base64String != null && base64String.isNotEmpty) {
+      try {
+        final String cleanBase64 = base64String.contains(',')
+            ? base64String.split(',').last
+            : base64String;
+
+        final bytes = base64Decode(cleanBase64);
+
+        imageProvider = MemoryImage(bytes);
+      } catch (e) {
+        debugPrint('Error decoding base64 image: $e');
+      }
+    }
     return Stack(
       children: [
-        const CircleAvatar(
+        CircleAvatar(
           radius: 28,
-          backgroundImage: NetworkImage('https://i.pravatar.cc/150?img=11'),
+          backgroundImage: imageProvider,
+          backgroundColor: Colors.grey[200],
+          child: imageProvider == null
+              ? const Icon(Icons.person, color: Colors.grey)
+              : null,
         ),
         Positioned(
           bottom: 0,

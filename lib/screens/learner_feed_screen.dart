@@ -13,41 +13,10 @@ class LearnerFeedScreen extends StatefulWidget {
 class _LearnerFeedScreenState extends State<LearnerFeedScreen> {
   // Controls the vertical scrolling of videos
   final PageController _pageController = PageController();
-  String? _userImage;
-  bool _isLoading = true;
 
   @override
   void initState() {
     super.initState();
-    _fetchCurrentUser();
-  }
-
-  Future<void> _fetchCurrentUser() async {
-    final messenger = ScaffoldMessenger.of(context);
-    try {
-      final uid = FirebaseAuth.instance.currentUser?.uid;
-
-      if (uid != null) {
-        DocumentSnapshot userDoc = await FirebaseFirestore.instance
-            .collection('users')
-            .doc(uid)
-            .get();
-
-        if (userDoc.exists) {
-          final data = userDoc.data() as Map<String, dynamic>?;
-          if (mounted) {
-            setState(() {
-              _userImage = data?['profileImageUrl'];
-              _isLoading = false;
-            });
-          }
-        }
-      }
-    } catch (e) {
-      messenger.showSnackBar(
-        SnackBar(content: Text('Error fetching user data: $e')),
-      );
-    }
   }
 
   @override
