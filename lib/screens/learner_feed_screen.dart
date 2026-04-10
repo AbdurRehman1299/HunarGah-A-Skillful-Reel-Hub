@@ -478,6 +478,7 @@ class _VideoFeedItemState extends State<VideoFeedItem> {
       children: [
         // -- Video Player --
         GestureDetector(
+          behavior: HitTestBehavior.deferToChild,
           onTap: () {
             // Play/Pause on tap
             setState(() {
@@ -486,34 +487,37 @@ class _VideoFeedItemState extends State<VideoFeedItem> {
                   : _videoPlayerController.play();
             });
           },
-          child: _isVideoInitialized
-              ? SizedBox.expand(
-                  child: FittedBox(
-                    fit: BoxFit.cover,
-                    child: SizedBox(
-                      width: _videoPlayerController.value.size.width,
-                      height: _videoPlayerController.value.size.height,
-                      child: VideoPlayer(_videoPlayerController),
-                    ),
-                  ),
-                )
-              : Center(child: CircularProgressIndicator(color: themeColor)),
+          child: Center(
+            child: _isVideoInitialized
+                ? AspectRatio(
+                    aspectRatio: _videoPlayerController.value.aspectRatio,
+                    child: VideoPlayer(_videoPlayerController),
+                  )
+                : Center(child: CircularProgressIndicator(color: themeColor)),
+          ),
         ),
 
         // -- Play Icon Overlay when paused --
         if (!_videoPlayerController.value.isPlaying && _isVideoInitialized)
-          const Center(
-            child: Icon(Icons.play_arrow, color: Colors.white70, size: 64),
+          const IgnorePointer(
+            child: Center(
+              child: Icon(Icons.play_arrow, color: Colors.white70, size: 64),
+            ),
           ),
 
         // -- Bottom Gradient Overlay for Text Visibility --
-        Container(
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.bottomCenter,
-              end: Alignment.topCenter,
-              colors: [Colors.black.withValues(alpha: 0.8), Colors.transparent],
-              stops: const [0.0, 0.4],
+        IgnorePointer(
+          child: Container(
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.bottomCenter,
+                end: Alignment.topCenter,
+                colors: [
+                  Colors.black.withValues(alpha: 0.8),
+                  Colors.transparent,
+                ],
+                stops: const [0.0, 0.4],
+              ),
             ),
           ),
         ),
