@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:hunargah/components/bottom_bar.dart';
-import 'package:hunargah/screens/category_screen.dart';
-import 'package:hunargah/screens/explore_screen.dart';
-import 'package:hunargah/screens/learner_feed_screen.dart';
-import 'package:hunargah/screens/user_profile_screen.dart';
+import 'package:hunargah/screens/dashboard/category_screen.dart';
+import 'package:hunargah/screens/dashboard/explore_screen.dart';
+import 'package:hunargah/screens/dashboard/learner_feed_screen.dart';
+import 'package:hunargah/screens/dashboard/user_profile_screen.dart';
 
 class MainDashboard extends StatefulWidget {
   const MainDashboard({super.key});
