@@ -1,3 +1,5 @@
+import 'dart:convert';
+import 'dart:io';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
@@ -131,7 +133,7 @@ class FirebaseService {
     }
   }
 
-  // Save user skills
+  // Save user's skills
   Future<String?> saveUserSkills(List<String> skills, int nextStep) async {
     try {
       User? user = _auth.currentUser;
@@ -143,6 +145,27 @@ class FirebaseService {
         return null;
       }
       return 'User session expired. Please log in again';
+    } catch (e) {
+      return 'An unexpected error occurred: $e';
+    }
+  }
+
+  // Save user's profile picture
+  Future<String?> saveProfilePicture(File imageFile, int nextStep) async {
+    try {
+      User? user = _auth.currentUser;
+      if (user != null) {
+        List<int> imageBytes = await imageFile.readAsBytes();
+        String base64Image = base64Encode(imageBytes);
+
+        await _firestore.collection('users').doc(user.uid).update({
+          'profileImageUrl': base64Image,
+          'onboardingStep': nextStep,
+        });
+
+        return null;
+      }
+      return 'User session expired.';
     } catch (e) {
       return 'An unexpected error occurred: $e';
     }

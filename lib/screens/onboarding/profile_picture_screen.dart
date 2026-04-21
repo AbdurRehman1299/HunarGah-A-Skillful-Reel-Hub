@@ -1,11 +1,7 @@
-import 'dart:convert';
-
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:hunargah/components/app_bar.dart';
 import 'package:hunargah/database/firebase_service.dart';
-import 'dart:io';
 import 'package:image_picker/image_picker.dart';
 
 class ProfilePictureScreen extends StatefulWidget {
@@ -45,53 +41,28 @@ class _ProfilePictureScreenState extends State<ProfilePictureScreen> {
   }
 
   Future<void> _saveProfilePicture() async {
-    if (_profileImage == null) {
+    if (_profileImage == null) return;
+
+    setState(() {
+      _isUploading = true;
+    });
+
+    String? errorMessage = await FirebaseService().saveProfilePicture(
+      _profileImage!,
+      4,
+    );
+
+    if (!mounted) return;
+    setState(() {
+      _isUploading = false;
+    });
+
+    if (errorMessage == null) {
+      Navigator.of(context).pushReplacementNamed('/dashboard');
+    } else {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Please select a profile picture to continue.'),
-        ),
+        SnackBar(content: Text(errorMessage), backgroundColor: Colors.red),
       );
-      return;
-    }
-
-    final navigator = Navigator.of(context);
-    final messenger = ScaffoldMessenger.of(context);
-    final uid = FirebaseAuth.instance.currentUser?.uid;
-
-    if (uid != null) {
-      setState(() {
-        _isUploading = true;
-      });
-
-      try {
-        // Convert the image file to bytes
-        List<int> imageBytes = await _profileImage!.readAsBytes();
-
-        // Get the download URL of the uploaded image
-        String downloadURL = base64Encode(imageBytes);
-
-        // Update Firestore
-        await FirebaseFirestore.instance.collection('users').doc(uid).update({
-          'profileImageUrl': downloadURL,
-          'onboardingStep': 4, // Mark profile picture step as completed
-        });
-
-        navigator.pushReplacementNamed('/dashboard');
-      } catch (e) {
-        messenger.showSnackBar(
-          SnackBar(
-            content: Text(
-              'Failed to upload profile picture. Please try again. Error: $e',
-            ),
-          ),
-        );
-      } finally {
-        if (mounted) {
-          setState(() {
-            _isUploading = false;
-          });
-        }
-      }
     }
   }
 
@@ -200,8 +171,7 @@ class _ProfilePictureScreenState extends State<ProfilePictureScreen> {
                 TextButton(
                   onPressed: () async {
                     await FirebaseService().updateOnboardingStep(4);
-                    if (!mounted) return;
-
+                    if (!context.mounted) return;
                     Navigator.of(context).pushReplacementNamed('/dashboard');
                   },
                   child: Text(
