@@ -132,5 +132,19 @@ class FirebaseService {
   }
 
   // Save user skills
-  Future<String?> saveUserSkills(List<String> skills, int nextStep) async {}
+  Future<String?> saveUserSkills(List<String> skills, int nextStep) async {
+    try {
+      User? user = _auth.currentUser;
+      if (user != null) {
+        await _firestore.collection('users').doc(user.uid).update({
+          'skills': skills,
+          'onboardingStep': nextStep,
+        });
+        return null;
+      }
+      return 'User session expired. Please log in again';
+    } catch (e) {
+      return 'An unexpected error occurred: $e';
+    }
+  }
 }

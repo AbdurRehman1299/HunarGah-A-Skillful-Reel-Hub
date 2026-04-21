@@ -1,7 +1,6 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:hunargah/components/app_bar.dart';
+import 'package:hunargah/database/firebase_service.dart';
 
 class SkillsInterestedScreen extends StatefulWidget {
   const SkillsInterestedScreen({super.key});
@@ -13,6 +12,7 @@ class SkillsInterestedScreen extends StatefulWidget {
 class _SkillsInterestedScreenState extends State<SkillsInterestedScreen> {
   // A set to store the skills the user has tapped
   final Set<String> _selectedSkills = {};
+  bool _isSaving = false;
 
   // The list of skills with icons
   final List<SkillCategory> _skills = [
@@ -31,26 +31,26 @@ class _SkillsInterestedScreenState extends State<SkillsInterestedScreen> {
   ];
 
   Future<void> _saveSelectedSkills() async {
-    final navigator = Navigator.of(context);
-    final messenger = ScaffoldMessenger.of(context);
-    final uid = FirebaseAuth.instance.currentUser?.uid;
+    setState(() {
+      _isSaving = true;
+    });
 
-    if (uid != null) {
-      try {
-        await FirebaseFirestore.instance.collection('users').doc(uid).update({
-          'skills': _selectedSkills
-              .toList(), // Convert Set to List for Firestore
-          'onboardingStep': 3, // Mark skills selection as completed
-        });
+    String? errorMessage = await FirebaseService().saveUserSkills(
+      _selectedSkills.toList(),
+      3,
+    );
 
-        navigator.pushNamed('/profile-picture');
-      } catch (e) {
-        messenger.showSnackBar(
-          const SnackBar(
-            content: Text('Failed to save skills. Please try again.'),
-          ),
-        );
-      }
+    if (!mounted) return;
+    setState(() {
+      _isSaving = false;
+    });
+
+    if (errorMessage == null) {
+      Navigator.of(context).pushReplacementNamed('/profile-picture');
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(errorMessage), backgroundColor: Colors.red),
+      );
     }
   }
 
@@ -228,7 +228,7 @@ class _SkillsInterestedScreenState extends State<SkillsInterestedScreen> {
       width: double.infinity,
       height: 54,
       child: ElevatedButton(
-        onPressed: hasEnoughSkills ? _saveSelectedSkills : null,
+        onPressed: (hasEnoughSkills && !_isSaving) ? _saveSelectedSkills : null,
         style: ElevatedButton.styleFrom(
           backgroundColor: hasEnoughSkills ? themeColor : Colors.grey[300],
           disabledBackgroundColor: Colors.grey[300],
