@@ -1,5 +1,8 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:hunargah/components/app_bar.dart';
+import 'package:hunargah/database/firebase_service.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:flutter/services.dart';
 
@@ -11,14 +14,36 @@ class UserProfileScreen extends StatefulWidget {
 }
 
 class _UserProfileScreenState extends State<UserProfileScreen> {
+  Map<String, dynamic>? _userData;
+  bool _isLoading = true;
   bool _isCreatorMode = false;
   int _selectedTabIndex = 0;
 
-  void _showShareBottomSheet(BuildContext context) {
+  @override
+  void initState() {
+    super.initState();
+    _loadUserData();
+  }
+
+  Future<void> _loadUserData() async {
+    final data = await FirebaseService().getUserData();
+    if (mounted) {
+      setState(() {
+        _userData = data;
+        _isLoading = false;
+      });
+    }
+  }
+
+  void _showShareBottomSheet(
+    BuildContext context,
+    String name,
+    String username,
+  ) {
     final Color themeColor = const Color(0xFF00BFA5);
-    final String profileLink = "hunargah.app/@alex_creativ";
+    final String profileLink = "hunargah.app/@$username";
     final String shareText =
-        "Check out Alex Chen's profile on Hunargah: $profileLink";
+        "Check out $name's profile on Hunargah: $profileLink";
 
     showModalBottomSheet(
       context: context,
@@ -222,12 +247,20 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
 
   @override
   Widget build(BuildContext context) {
+    if (_isLoading) {
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    }
     final themeColor = Theme.of(context).primaryColor;
+
+    final String name = _userData?['fullName'] ?? 'HunarGah User';
+    final String username = _userData?['username'] ?? 'user';
+    final String bio = _userData?['bio'] ?? 'No bio yet. Tap edit to add one!';
+    final String? base64Image = _userData?['profileImageUrl'];
 
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: CustomAppBar(
-        title: '@alex_creativity',
+        title: '@$username',
         actions: [
           IconButton(
             icon: const Icon(Icons.settings_outlined, color: Colors.black87),
@@ -235,67 +268,72 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
           ),
         ],
       ),
-      body: SingleChildScrollView(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // -- Profile Header(Avatar & Stats) --
-            avatarAndStats(),
+      body: RefreshIndicator(
+        onRefresh: _loadUserData,
+        child: SingleChildScrollView(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // -- Profile Header(Avatar & Stats) --
+              avatarAndStats(base64Image, themeColor),
 
-            // -- Bio Section --
-            profileBio(),
+              // -- Bio Section --
+              profileBio(name, bio),
 
-            const SizedBox(height: 20),
+              const SizedBox(height: 20),
 
-            // -- Action Buttons --
-            profileActionButtons(themeColor),
+              // -- Action Buttons --
+              profileActionButtons(themeColor, name, username),
 
-            const SizedBox(height: 20),
+              const SizedBox(height: 20),
 
-            // -- Creator Toggle --
-            switchToCreator(themeColor),
+              // -- Creator Toggle --
+              switchToCreator(themeColor),
 
-            const SizedBox(height: 24),
+              const SizedBox(height: 24),
 
-            // -- Custom Tabs --
-            customTabs(),
+              // -- Custom Tabs --
+              customTabs(),
 
-            Divider(color: Colors.grey[200], height: 1, thickness: 1),
+              Divider(color: Colors.grey[200], height: 1, thickness: 1),
 
-            const SizedBox(height: 16),
+              const SizedBox(height: 16),
 
-            // -- Grid View --
-            if (_selectedTabIndex == 0)
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                child: GridView.builder(
-                  shrinkWrap: true,
-                  physics: const NeverScrollableScrollPhysics(),
-                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: 2,
-                    crossAxisSpacing: 16,
-                    mainAxisSpacing: 24,
-                    childAspectRatio: 0.85, // Adjusts height vs width of cards
+              // -- Grid View --
+              if (_selectedTabIndex == 0)
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                  child: GridView.builder(
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    gridDelegate:
+                        const SliverGridDelegateWithFixedCrossAxisCount(
+                          crossAxisCount: 2,
+                          crossAxisSpacing: 16,
+                          mainAxisSpacing: 24,
+                          childAspectRatio:
+                              0.85, // Adjusts height vs width of cards
+                        ),
+                    itemCount: 4,
+                    itemBuilder: (context, index) {
+                      return _buildGridCard(index);
+                    },
                   ),
-                  itemCount: 4,
-                  itemBuilder: (context, index) {
-                    return _buildGridCard(index);
-                  },
-                ),
-              )
-            else
-              const Center(
-                child: Padding(
-                  padding: EdgeInsets.all(40.0),
-                  child: Text(
-                    'No certificates yet.',
-                    style: TextStyle(color: Colors.grey),
+                )
+              else
+                const Center(
+                  child: Padding(
+                    padding: EdgeInsets.all(40.0),
+                    child: Text(
+                      'No certificates yet.',
+                      style: TextStyle(color: Colors.grey),
+                    ),
                   ),
                 ),
-              ),
 
-            const SizedBox(height: 40),
-          ],
+              const SizedBox(height: 40),
+            ],
+          ),
         ),
       ),
     );
@@ -355,7 +393,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
     );
   }
 
-  Padding profileActionButtons(Color themeColor) {
+  Padding profileActionButtons(Color themeColor, String name, String username) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 20.0),
       child: Row(
@@ -386,7 +424,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
           const SizedBox(width: 12),
           Expanded(
             child: OutlinedButton(
-              onPressed: () => _showShareBottomSheet(context),
+              onPressed: () => _showShareBottomSheet(context, name, username),
               style: OutlinedButton.styleFrom(
                 side: BorderSide(color: Colors.grey[300]!),
                 shape: RoundedRectangleBorder(
@@ -409,7 +447,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
     );
   }
 
-  Padding profileBio() {
+  Padding profileBio(String name, String bio) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 20.0),
       child: Column(
@@ -417,8 +455,8 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
         children: [
           Row(
             children: [
-              const Text(
-                'Alex Chen',
+              Text(
+                name,
                 style: TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
@@ -430,8 +468,8 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
             ],
           ),
           const SizedBox(height: 6),
-          const Text(
-            'Digital Product Designer & Tech Educator. Helping 10k+ students master modern UI/UX workflows. 🚀',
+          Text(
+            bio,
             style: TextStyle(fontSize: 13, color: Colors.black87, height: 1.4),
           ),
           const SizedBox(height: 12),
@@ -448,16 +486,13 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
     );
   }
 
-  Padding avatarAndStats() {
+  Padding avatarAndStats(String? base64Image, Color themeColor) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 16.0),
       child: Row(
         children: [
-          // Avatar with Online Status Dot
-          profileAvatar(),
-
+          _buildAvatar(base64Image, themeColor),
           const SizedBox(width: 24),
-
           // Stats
           profileStats(),
         ],
@@ -478,14 +513,18 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
     );
   }
 
-  Stack profileAvatar() {
+  Widget _buildAvatar(String? base64String, Color themeColor) {
     return Stack(
       children: [
-        const CircleAvatar(
+        CircleAvatar(
           radius: 40,
-          backgroundImage: NetworkImage(
-            'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=150&q=80',
-          ),
+          backgroundColor: themeColor.withValues(alpha: 0.1),
+          backgroundImage: (base64String != null && base64String.isNotEmpty)
+              ? MemoryImage(base64Decode(base64String))
+              : null,
+          child: (base64String == null || base64String.isEmpty)
+              ? Icon(Icons.person, size: 40, color: themeColor)
+              : null,
         ),
         Positioned(
           bottom: 2,

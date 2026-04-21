@@ -170,4 +170,21 @@ class FirebaseService {
       return 'An unexpected error occurred: $e';
     }
   }
+
+  // Fetch user's data
+  Future<Map<String, dynamic>?> getUserData() async {
+    try {
+      User? user = _auth.currentUser;
+      if (user != null) {
+        DocumentSnapshot doc = await _firestore
+            .collection('users')
+            .doc(user.uid)
+            .get();
+        return doc.data() as Map<String, dynamic>?;
+      }
+      return null;
+    } catch (e) {
+      return null;
+    }
+  }
 }
