@@ -31,8 +31,6 @@ class _LoginScreenState extends State<LoginScreen> {
       _isLoading = false;
     });
 
-    Navigator.pop(context);
-
     if (errorMessage == null) {
       int? step = await FirebaseService().getUserOnboardingSteps();
 

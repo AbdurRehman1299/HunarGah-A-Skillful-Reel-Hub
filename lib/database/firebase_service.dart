@@ -49,7 +49,7 @@ class FirebaseService {
           'city': '',
           'onboardingStep': 0,
           'language': '',
-          'skill': [],
+          'skills': [],
           'profileImageUrl': '',
         });
 
@@ -77,7 +77,6 @@ class FirebaseService {
         email: email.trim(),
         password: password.trim(),
       );
-
       return null;
     } on FirebaseAuthException catch (e) {
       if (e.code == 'user-not-found' ||
@@ -88,6 +87,30 @@ class FirebaseService {
       return 'An error occurred. Please try again.';
     } catch (e) {
       return 'An unexpected error occurred: $e';
+    }
+  }
+
+  // SignOut the user
+  Future<void> signOutUser() async {
+    try {
+      await _auth.signOut();
+    } catch (e) {
+      return;
+    }
+  }
+
+  // Update the onboardingSteps
+  Future<String?> updateOnboardingStep(int step) async {
+    try {
+      User? user = _auth.currentUser;
+      if (user != null) {
+        await _firestore.collection('users').doc(user.uid).update({
+          'onboardingStep': step,
+        });
+      }
+      return null;
+    } catch (e) {
+      return 'Error saving progress: $e';
     }
   }
 }

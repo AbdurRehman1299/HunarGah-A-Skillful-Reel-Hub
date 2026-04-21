@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:hunargah/components/app_bar.dart';
+import 'package:hunargah/database/firebase_service.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -10,6 +11,47 @@ class SettingsScreen extends StatefulWidget {
 
 class _SettingsScreenState extends State<SettingsScreen> {
   bool isDarkMode = false;
+
+  void _showSignOutDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: const Text('Sign Out'),
+        content: const Text('Are you sure you want to logout of HunarGah?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel', style: TextStyle(color: Colors.grey)),
+          ),
+          TextButton(
+            onPressed: () {
+              Navigator.pop(context);
+              signOutUser(context);
+            },
+            child: const Text(
+              'Sign Out',
+              style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> signOutUser(BuildContext context) async {
+    await FirebaseService().signOutUser();
+
+    if (!context.mounted) return;
+
+    Navigator.of(
+      context,
+    ).pushNamedAndRemoveUntil('/login', (Route<dynamic> route) => false);
+
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(const SnackBar(content: Text('Logged out successfully.')));
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -132,12 +174,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
             _buildSettingsTile(
               icon: Icons.logout,
               title: 'Sign Out',
-              subtitle: '',
+              subtitle: 'Log out of your account',
               iconColor: Colors.redAccent,
               titleColor: Colors.redAccent,
               showChevron: false,
               onTap: () {
-                // Sign out logic
+                _showSignOutDialog(context);
               },
             ),
 

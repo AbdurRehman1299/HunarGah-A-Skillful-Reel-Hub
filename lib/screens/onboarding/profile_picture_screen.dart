@@ -4,6 +4,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:hunargah/components/app_bar.dart';
+import 'package:hunargah/database/firebase_service.dart';
 import 'dart:io';
 import 'package:image_picker/image_picker.dart';
 
@@ -197,8 +198,11 @@ class _ProfilePictureScreenState extends State<ProfilePictureScreen> {
               // "Skip for now" Button (Only show if user hasn't picked an image yet)
               if (!hasImage)
                 TextButton(
-                  onPressed: () {
-                    Navigator.pushReplacementNamed(context, '/dashboard');
+                  onPressed: () async {
+                    await FirebaseService().updateOnboardingStep(4);
+                    if (!mounted) return;
+
+                    Navigator.of(context).pushReplacementNamed('/dashboard');
                   },
                   child: Text(
                     'Skip for now',
