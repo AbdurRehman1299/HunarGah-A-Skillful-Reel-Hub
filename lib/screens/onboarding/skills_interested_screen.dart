@@ -74,17 +74,7 @@ class _SkillsInterestedScreenState extends State<SkillsInterestedScreen> {
 
     return Scaffold(
       backgroundColor: Colors.white,
-      appBar: CustomAppBar(
-        leading: IconButton(
-          onPressed: () => Navigator.pop(context),
-          icon: const Icon(
-            Icons.arrow_back_ios_new,
-            color: Colors.black,
-            size: 20,
-          ),
-        ),
-        title: 'Personalized HunarGah',
-      ),
+      appBar: CustomAppBar(title: 'Personalized HunarGah'),
       body: SafeArea(
         child: SingleChildScrollView(
           padding: EdgeInsets.symmetric(horizontal: 24.0, vertical: 24.0),

@@ -1,7 +1,7 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:hunargah/components/app_bar.dart';
+import 'package:hunargah/database/firebase_service.dart';
 
 class LanguageSelectorScreen extends StatefulWidget {
   const LanguageSelectorScreen({super.key});
@@ -17,26 +17,19 @@ class _LanguageSelectorScreenState extends State<LanguageSelectorScreen> {
   Future<void> _saveLanguagePreference() async {
     if (selectedLanguage == null) return;
 
-    final uid = FirebaseAuth.instance.currentUser?.uid;
-    if (uid != null) {
-      try {
-        await FirebaseFirestore.instance.collection('users').doc(uid).update({
-          'language': selectedLanguage,
-          'onboardingStep': 2, // Mark language as completed
-        });
+    String? errorMessage = await FirebaseService().saveUserLanguage(
+      selectedLanguage!,
+      2,
+    );
 
-        if (!mounted) return;
-        Navigator.pushNamed(context, '/skills');
-      } catch (e) {
-        if (!mounted) return;
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              'Failed to save language preference. Please try again.',
-            ),
-          ),
-        );
-      }
+    if (!mounted) return;
+
+    if (errorMessage == null) {
+      Navigator.of(context).pushReplacementNamed('/skills');
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(errorMessage), backgroundColor: Colors.red),
+      );
     }
   }
 
@@ -232,6 +225,7 @@ class _LanguageSelectorScreenState extends State<LanguageSelectorScreen> {
     return GestureDetector(
       onTap: () {
         setState(() {
+          HapticFeedback.lightImpact();
           selectedLanguage = id;
         });
       },

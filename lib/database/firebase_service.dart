@@ -113,4 +113,24 @@ class FirebaseService {
       return 'Error saving progress: $e';
     }
   }
+
+  // Save user's language
+  Future<String?> saveUserLanguage(String language, int nextStep) async {
+    try {
+      User? user = _auth.currentUser;
+      if (user != null) {
+        await _firestore.collection('users').doc(user.uid).update({
+          'language': language,
+          'onboardingStep': nextStep,
+        });
+        return null;
+      }
+      return 'User not found. Please try again';
+    } catch (e) {
+      return 'An unexpected error occurred: $e';
+    }
+  }
+
+  // Save user skills
+  Future<String?> saveUserSkills(List<String> skills, int nextStep) async {}
 }
