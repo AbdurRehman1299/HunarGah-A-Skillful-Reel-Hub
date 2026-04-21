@@ -1,20 +1,20 @@
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
-import 'package:hunargah/screens/dashboard/main_dashboard.dart';
 import 'firebase_options.dart';
+import 'package:hunargah/screens/dashboard/main_dashboard.dart';
 import 'package:hunargah/screens/course_playlist_screen.dart';
 import 'package:hunargah/screens/edit_profile_screen.dart';
 import 'package:hunargah/screens/onboarding/language_selector_screen.dart';
-import 'package:hunargah/screens/auth/login_screen.dart';
+import 'package:hunargah/auth/login_screen.dart';
 import 'package:hunargah/screens/notifications_screen.dart';
 import 'package:hunargah/screens/onboarding/onboarding_screen.dart';
 import 'package:hunargah/screens/privacy_and_policy_screen.dart';
 import 'package:hunargah/screens/onboarding/profile_picture_screen.dart';
 import 'package:hunargah/screens/quiz_dialog_screen.dart';
 import 'package:hunargah/screens/settings_screen.dart';
-import 'package:hunargah/screens/auth/signup_screen.dart';
+import 'package:hunargah/auth/signup_screen.dart';
 import 'package:hunargah/screens/onboarding/skills_interested_screen.dart';
-import 'package:hunargah/screens/auth/splash_screen.dart';
+import 'package:hunargah/auth/splash_screen.dart';
 import 'package:hunargah/screens/terms_and_conditions_screen.dart';
 import 'package:hunargah/screens/ustad_profile_screen.dart';
 import 'package:hunargah/screens/video_player_screen.dart';
@@ -36,7 +36,6 @@ class MainApp extends StatelessWidget {
     return MaterialApp(
       title: 'HunarGah',
       debugShowCheckedModeBanner: false,
-      // Set the first screen that loads
       home: SplashScreen(),
 
       // Define the all routes
@@ -61,7 +60,7 @@ class MainApp extends StatelessWidget {
 
       // Set theme to declare color one time
       theme: ThemeData(
-        primaryColor: const Color(0xFF00897B), // Learner theme: Teal Green
+        primaryColor: const Color(0xFF00897B),
         useMaterial3: true,
       ),
     );

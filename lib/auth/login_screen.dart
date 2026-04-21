@@ -1,8 +1,7 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:hunargah/components/app_bar.dart';
+import 'package:hunargah/database/firebase_service.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -17,107 +16,72 @@ class _LoginScreenState extends State<LoginScreen> {
   // To toggle password visibility
   bool _obsecurePassword = true;
 
+  bool _isLoading = false;
+
   Future<void> _loginUser(String email, String password) async {
-    // Show a loading
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (context) => const Center(child: CircularProgressIndicator()),
-    );
+    setState(() {
+      _isLoading = true;
+    });
 
-    try {
-      // Log the user in
-      UserCredential userCredential = await FirebaseAuth.instance
-          .signInWithEmailAndPassword(
-            email: email.trim(),
-            password: password.trim(),
-          );
+    String? errorMessage = await FirebaseService().loginUser(email, password);
 
-      User? user = userCredential.user;
+    if (!mounted) return;
 
-      if (user != null && mounted) {
-        // Fetch the user's profile data from Firestore
-        DocumentSnapshot userDoc = await FirebaseFirestore.instance
-            .collection('users')
-            .doc(user.uid)
-            .get();
+    setState(() {
+      _isLoading = false;
+    });
 
-        if (userDoc.exists) {
-          // Extract the onboarding step
-          int step = 0;
+    Navigator.pop(context);
 
-          // Safely check if the field exists
-          Map<String, dynamic>? data = userDoc.data() as Map<String, dynamic>?;
-          if (data != null && data.containsKey('onboardingStep')) {
-            step = data['onboardingStep'];
-          }
+    if (errorMessage == null) {
+      int? step = await FirebaseService().getUserOnboardingSteps();
 
-          // Route the user based on their onboarding step
-          if (!mounted) return;
+      if (!mounted) return;
 
-          if (step == 0) {
-            Navigator.pushReplacementNamed(context, '/onboarding');
-          } else if (step == 1) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text(
-                  'Please select your preferred language to continue.',
-                ),
-              ),
-            );
-            Navigator.pushReplacementNamed(context, '/language');
-          } else if (step == 2) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text(
-                  'Please select your skills of interest to continue.',
-                ),
-              ),
-            );
-            Navigator.pushReplacementNamed(context, '/skills');
-          } else if (step == 3) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text('Please upload a profile picture to continue.'),
-              ),
-            );
-            Navigator.pushReplacementNamed(context, '/profile');
-          } else {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text('Login successful! Redirecting to dashboard...'),
-              ),
-            );
-            Navigator.pushReplacementNamed(context, '/dashboard');
-          }
-        }
-      }
-    } on FirebaseAuthException catch (e) {
-      String errorMessage = 'Login failed. Please try again.';
-
-      if (e.code == 'user-not-found' ||
-          e.code == 'wrong-password' ||
-          e.code == 'invalid-credential') {
-        errorMessage = 'Invalid email or password. Please try again.';
-      } else {
-        errorMessage = 'An error occurred. Please try again.';
-      }
-
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(errorMessage), backgroundColor: Colors.red),
-        );
-      }
-    } catch (e) {
-      if (mounted) {
+      if (step == 0 || step == null) {
+        Navigator.pushReplacementNamed(context, '/onboarding');
+      } else if (step == 1) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text('An unexpected error occurred. Please try again.'),
-            backgroundColor: Colors.red,
+            content: Text('Please select your preferred language to continue.'),
           ),
         );
+        Navigator.pushReplacementNamed(context, '/language');
+      } else if (step == 2) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Please select your skills of interest to continue.'),
+          ),
+        );
+        Navigator.pushReplacementNamed(context, '/skills');
+      } else if (step == 3) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Please upload a profile picture to continue.'),
+          ),
+        );
+        Navigator.pushReplacementNamed(context, '/profile');
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Login successful! Redirecting to dashboard...'),
+            backgroundColor: Colors.green,
+          ),
+        );
+        Navigator.pushReplacementNamed(context, '/dashboard');
       }
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(errorMessage), backgroundColor: Colors.red),
+      );
     }
+  }
+
+  @override
+  void dispose() {
+    _emailController.dispose();
+    _passwordController.dispose();
+    super.dispose();
   }
 
   @override
@@ -335,6 +299,8 @@ class _LoginScreenState extends State<LoginScreen> {
       height: 50,
       child: ElevatedButton(
         onPressed: () {
+          if (_isLoading) return;
+
           if (_emailController.text.isNotEmpty &&
               _passwordController.text.isNotEmpty) {
             _loginUser(_emailController.text, _passwordController.text);
@@ -354,21 +320,30 @@ class _LoginScreenState extends State<LoginScreen> {
           ),
           elevation: 0,
         ),
-        child: const Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Text(
-              'Login',
-              style: TextStyle(
-                fontSize: 14,
-                fontWeight: FontWeight.bold,
-                color: Colors.white,
+        child: _isLoading
+            ? const SizedBox(
+                height: 20,
+                width: 20,
+                child: CircularProgressIndicator(
+                  color: Colors.white,
+                  strokeWidth: 2,
+                ),
+              )
+            : const Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    'Login',
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
+                  ),
+                  SizedBox(width: 5),
+                  Icon(Icons.arrow_forward, color: Colors.white, size: 14),
+                ],
               ),
-            ),
-            SizedBox(width: 5),
-            Icon(Icons.arrow_forward, color: Colors.white, size: 14),
-          ],
-        ),
       ),
     );
   }

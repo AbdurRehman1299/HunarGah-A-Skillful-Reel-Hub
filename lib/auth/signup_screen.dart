@@ -1,6 +1,5 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:hunargah/database/firebase_service.dart';
 
 class SignupScreen extends StatefulWidget {
   const SignupScreen({super.key});
@@ -14,82 +13,50 @@ class _SignupScreenState extends State<SignupScreen> {
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
+  final TextEditingController _confirmPasswordController =
+      TextEditingController();
+
+  // State to hide/show the password
+  bool _obsecurePassword = true;
+  bool _obsecureConfirmPassword = true;
+
+  bool _isLoading = false;
 
   Future<void> _registerUser(
     String email,
     String password,
     String username,
   ) async {
-    try {
-      // Create a user in Firebase Authentication
-      UserCredential userCredential = await FirebaseAuth.instance
-          .createUserWithEmailAndPassword(
-            email: email.trim(),
-            password: password.trim(),
-          );
+    setState(() {
+      _isLoading = true;
+    });
 
-      User? user = userCredential.user;
+    String? errorMessage = await FirebaseService().registerUser(
+      email,
+      password,
+      username,
+    );
 
-      if (user != null) {
-        // Attach the username to the Firebase user profile
-        await user.updateDisplayName(username.trim());
+    if (!mounted) return;
 
-        // Create user profile in Firestore database
-        await FirebaseFirestore.instance.collection('users').doc(user.uid).set({
-          'uid': user.uid,
-          'username': username.trim(),
-          'email': email.trim(),
-          'createdAt':
-              FieldValue.serverTimestamp(), // Store account creation time
-          'city':
-              '', // Leaving this blank so user can update it later in profile settings
-          'onboardingStep': 0,
-          'language': '',
-          'skills': [],
-          'profileImageUrl': '',
-        });
-      }
+    setState(() {
+      _isLoading = false;
+    });
 
-      // Successfully registered, Navigate to the login screen
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Account created successfully! Please log in.'),
-            backgroundColor: Colors.green,
-          ),
-        );
-        Navigator.pushReplacementNamed(context, '/login');
-      }
-    } on FirebaseAuthException catch (e) {
-      String errorMessage = 'An error occurred. Please try again.';
-
-      if (e.code == 'weak-password') {
-        errorMessage = 'The password provided is too weak.';
-      } else if (e.code == 'email-already-in-use') {
-        errorMessage = 'An account already exists for that email.';
-      } else if (e.code == 'invalid-email') {
-        errorMessage = 'The email address is not valid.';
-      }
-
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(errorMessage), backgroundColor: Colors.red),
-        );
-      }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('An unexpected error occurred: $e'),
-            backgroundColor: Colors.red,
-          ),
-        );
-      }
+    if (errorMessage == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Account created successfully! Please log in.'),
+          backgroundColor: Colors.green,
+        ),
+      );
+      Navigator.pushReplacementNamed(context, '/login');
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(errorMessage), backgroundColor: Colors.red),
+      );
     }
   }
-
-  // State to hide/show the password
-  bool _obscurePassword = true;
 
   @override
   void dispose() {
@@ -97,6 +64,7 @@ class _SignupScreenState extends State<SignupScreen> {
     _nameController.dispose();
     _emailController.dispose();
     _passwordController.dispose();
+    _confirmPasswordController.dispose();
     super.dispose();
   }
 
@@ -176,6 +144,11 @@ class _SignupScreenState extends State<SignupScreen> {
 
               // -- Password Section --
               passwordSection(themeColor),
+
+              const SizedBox(height: 16),
+
+              // -- Confirm Password Section
+              confirmPasswordSection(themeColor),
 
               const SizedBox(height: 32),
 
@@ -274,15 +247,36 @@ class _SignupScreenState extends State<SignupScreen> {
       height: 50,
       child: ElevatedButton(
         onPressed: () {
-          if (_emailController.text.isNotEmpty &&
-              _passwordController.text.isNotEmpty &&
-              _nameController.text.isNotEmpty) {
-            _registerUser(
-              _emailController.text,
-              _passwordController.text,
-              _nameController.text,
+          if (_isLoading) return;
+
+          if (_nameController.text.isEmpty ||
+              _emailController.text.isEmpty ||
+              _passwordController.text.isEmpty ||
+              _confirmPasswordController.text.isEmpty) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('Please fill in all fields.'),
+                backgroundColor: Colors.red,
+              ),
             );
+            return;
           }
+
+          if (_passwordController.text != _confirmPasswordController.text) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('Passwords do not match!'),
+                backgroundColor: Colors.red,
+              ),
+            );
+            return;
+          }
+
+          _registerUser(
+            _emailController.text,
+            _passwordController.text,
+            _nameController.text,
+          );
         },
         style: ElevatedButton.styleFrom(
           backgroundColor: themeColor,
@@ -291,21 +285,30 @@ class _SignupScreenState extends State<SignupScreen> {
           ),
           elevation: 0,
         ),
-        child: const Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Text(
-              'Sign Up',
-              style: TextStyle(
-                fontSize: 14,
-                fontWeight: FontWeight.bold,
-                color: Colors.white,
+        child: _isLoading
+            ? const SizedBox(
+                height: 20,
+                width: 20,
+                child: CircularProgressIndicator(
+                  color: Colors.white,
+                  strokeWidth: 2,
+                ),
+              )
+            : const Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    'Sign Up',
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
+                  ),
+                  SizedBox(width: 5),
+                  Icon(Icons.arrow_forward, color: Colors.white, size: 14),
+                ],
               ),
-            ),
-            SizedBox(width: 5),
-            Icon(Icons.arrow_forward, color: Colors.white, size: 14),
-          ],
-        ),
       ),
     );
   }
@@ -327,7 +330,7 @@ class _SignupScreenState extends State<SignupScreen> {
 
         TextFormField(
           controller: _passwordController,
-          obscureText: _obscurePassword,
+          obscureText: _obsecurePassword,
           decoration: InputDecoration(
             hintText: 'Create a strong password',
             hintStyle: TextStyle(color: Colors.grey[400], fontSize: 14),
@@ -338,13 +341,73 @@ class _SignupScreenState extends State<SignupScreen> {
             ),
             suffixIcon: IconButton(
               icon: Icon(
-                _obscurePassword ? Icons.visibility_off : Icons.visibility,
+                _obsecurePassword ? Icons.visibility_off : Icons.visibility,
                 color: Colors.grey[500],
                 size: 20,
               ),
               onPressed: () {
                 setState(() {
-                  _obscurePassword = !_obscurePassword;
+                  _obsecurePassword = !_obsecurePassword;
+                });
+              },
+            ),
+            filled: true,
+            fillColor: Colors.grey[50],
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(8),
+              borderSide: BorderSide(color: Colors.grey[300]!),
+            ),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(8),
+              borderSide: BorderSide(color: Colors.grey[300]!),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(8),
+              borderSide: BorderSide(color: themeColor, width: 2),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Column confirmPasswordSection(Color themeColor) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          'Confirm Password',
+          style: TextStyle(
+            fontSize: 13,
+            fontWeight: FontWeight.bold,
+            color: Colors.black87,
+          ),
+        ),
+
+        const SizedBox(height: 8),
+
+        TextFormField(
+          controller: _confirmPasswordController,
+          obscureText: _obsecureConfirmPassword,
+          decoration: InputDecoration(
+            hintText: 'Re-enter your password',
+            hintStyle: TextStyle(color: Colors.grey[400], fontSize: 14),
+            prefixIcon: Icon(
+              Icons.lock_outline,
+              color: Colors.grey[500],
+              size: 20,
+            ),
+            suffixIcon: IconButton(
+              icon: Icon(
+                _obsecureConfirmPassword
+                    ? Icons.visibility_off
+                    : Icons.visibility,
+                color: Colors.grey[500],
+                size: 20,
+              ),
+              onPressed: () {
+                setState(() {
+                  _obsecureConfirmPassword = !_obsecureConfirmPassword;
                 });
               },
             ),

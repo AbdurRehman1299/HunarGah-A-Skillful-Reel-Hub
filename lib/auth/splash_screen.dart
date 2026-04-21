@@ -1,6 +1,5 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:hunargah/database/firebase_service.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -20,31 +19,13 @@ class _SplashScreenState extends State<SplashScreen> {
     try {
       await Future.delayed(const Duration(seconds: 2));
 
-      User? currentUser = FirebaseAuth.instance.currentUser;
+      int? step = await FirebaseService().getUserOnboardingSteps();
 
       if (!mounted) return;
 
-      if (currentUser == null) {
+      if (step == null) {
         Navigator.of(context).pushReplacementNamed('/signup');
-        return;
-      }
-
-      DocumentSnapshot userDoc = await FirebaseFirestore.instance
-          .collection('users')
-          .doc(currentUser.uid)
-          .get();
-
-      if (!mounted) return;
-
-      if (!userDoc.exists) {
-        Navigator.of(context).pushReplacementNamed('/signup');
-        return;
-      }
-
-      final data = userDoc.data() as Map<String, dynamic>?;
-      int step = data?['onboardingStep'] ?? 0;
-
-      if (step == 0) {
+      } else if (step == 0) {
         Navigator.of(context).pushReplacementNamed('/onboarding');
       } else if (step == 1) {
         Navigator.of(context).pushReplacementNamed('/language');
