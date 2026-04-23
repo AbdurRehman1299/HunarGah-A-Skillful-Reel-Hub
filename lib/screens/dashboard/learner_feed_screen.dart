@@ -347,6 +347,7 @@ class VideoFeedItem extends StatefulWidget {
 class _VideoFeedItemState extends State<VideoFeedItem> {
   late VideoPlayerController _videoPlayerController;
   bool _isVideoInitialized = false;
+  final TextEditingController _commentController = TextEditingController();
   final String? _currentUserId = FirebaseService().currentUserId;
 
   @override
@@ -391,14 +392,114 @@ class _VideoFeedItemState extends State<VideoFeedItem> {
   void dispose() {
     _videoPlayerController.pause();
     _videoPlayerController.dispose();
+    _commentController.dispose();
     super.dispose();
   }
 
-  void _showDummySnackBar(String text) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('$text coming soon!'),
-        duration: const Duration(seconds: 1),
+  void _showComments() {
+    final themeColor = Theme.of(context).primaryColor;
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) => Padding(
+        padding: EdgeInsets.only(
+          bottom: MediaQuery.of(context).viewInsets.bottom,
+        ),
+        child: SizedBox(
+          height: MediaQuery.of(context).size.height * 0.5,
+          child: Column(
+            children: [
+              const SizedBox(height: 8),
+
+              Container(
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: Colors.black26,
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+
+              const Padding(
+                padding: EdgeInsets.all(12.0),
+                child: Text(
+                  'Comments',
+                  style: TextStyle(
+                    color: Colors.black,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+
+              const Divider(color: Colors.black26),
+
+              Expanded(
+                child: StreamBuilder<QuerySnapshot>(
+                  stream: FirebaseService().getCommentsStream(widget.videoId),
+                  builder: (context, snapshot) {
+                    if (!snapshot.hasData) {
+                      return const Center(child: CircularProgressIndicator());
+                    }
+                    final docs = snapshot.data!.docs;
+                    return ListView.builder(
+                      itemCount: docs.length,
+                      itemBuilder: (context, i) {
+                        final comment = docs[i].data() as Map<String, dynamic>;
+                        return ListTile(
+                          title: Text(
+                            comment['username'] ?? 'User',
+                            style: const TextStyle(
+                              color: Colors.black87,
+                              fontSize: 13,
+                            ),
+                          ),
+                          subtitle: Text(
+                            comment['text'] ?? '',
+                            style: const TextStyle(color: Colors.black),
+                          ),
+                        );
+                      },
+                    );
+                  },
+                ),
+              ),
+
+              Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: TextField(
+                        controller: _commentController,
+                        style: const TextStyle(color: Colors.black),
+                        decoration: const InputDecoration(
+                          hintText: 'Add comment...',
+                          hintStyle: TextStyle(color: Colors.black38),
+                        ),
+                      ),
+                    ),
+                    IconButton(
+                      onPressed: () {
+                        FirebaseService().addComment(
+                          widget.videoId,
+                          _commentController.text,
+                        );
+                        _commentController.clear();
+                      },
+                      icon: Icon(Icons.send, color: themeColor),
+                    ),
+                  ],
+                ),
+              ),
+
+              const SizedBox(height: 20),
+            ],
+          ),
+        ),
       ),
     );
   }
@@ -428,6 +529,7 @@ class _VideoFeedItemState extends State<VideoFeedItem> {
 
     final String likeCount = likedBy.length.toString();
     final String saveCount = savedBy.length.toString();
+    final String commentCount = (data['commentCount'] ?? 0).toString();
 
     final bool isLiked =
         _currentUserId != null && likedBy.contains(_currentUserId);
@@ -518,7 +620,7 @@ class _VideoFeedItemState extends State<VideoFeedItem> {
                       Positioned(
                         bottom: 0,
                         child: GestureDetector(
-                          onTap: () => _showDummySnackBar('Subscribe'),
+                          onTap: () => {},
                           child: Container(
                             padding: const EdgeInsets.all(2),
                             decoration: BoxDecoration(
@@ -550,8 +652,8 @@ class _VideoFeedItemState extends State<VideoFeedItem> {
                 // -- Comment Button --
                 _buildActionButton(
                   icon: Icons.chat_bubble_outline,
-                  label: '12',
-                  onTap: () => _showDummySnackBar('Comments'),
+                  label: commentCount,
+                  onTap: () => _showComments(),
                 ),
 
                 // -- Save Button --
@@ -567,7 +669,7 @@ class _VideoFeedItemState extends State<VideoFeedItem> {
                   icon: Icons.reply,
                   label: 'Share',
                   isShare: true,
-                  onTap: () => _showDummySnackBar("Share"),
+                  onTap: () => {},
                 ),
               ],
             ),

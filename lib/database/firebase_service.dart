@@ -214,6 +214,36 @@ class FirebaseService {
     }
   }
 
+  // Add comment in video
+  Future<void> addComment(String videoId, String commentText) async {
+    if (currentUserId == null || commentText.trim().isEmpty) return;
+
+    await _firestore
+        .collection('videos')
+        .doc(videoId)
+        .collection('comments')
+        .add({
+          'uid': currentUserId,
+          'text': commentText,
+          'timestamp': FieldValue.serverTimestamp(),
+          'username': _auth.currentUser?.displayName ?? 'User',
+        });
+
+    await _firestore.collection('videos').doc(videoId).update({
+      'commentCount': FieldValue.increment(1),
+    });
+  }
+
+  // Fetch comments
+  Stream<QuerySnapshot> getCommentsStream(String videoId) {
+    return _firestore
+        .collection('videos')
+        .doc(videoId)
+        .collection('comments')
+        .orderBy('timestamp', descending: true)
+        .snapshots();
+  }
+
   // Save video
   Future<void> toggleSave(String videoId, List<dynamic> savedBy) async {
     if (currentUserId == null) return;
