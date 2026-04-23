@@ -187,4 +187,48 @@ class FirebaseService {
       return null;
     }
   }
+
+  // -- Video Fetch Logic -- Start from here
+  String? get currentUserId => _auth.currentUser?.uid;
+
+  // Stream videos for feed
+  Stream<QuerySnapshot> getVideosStream() {
+    return _firestore.collection('videos').snapshots();
+  }
+
+  // Like video
+  Future<void> toggleLike(String videoId, List<dynamic> likedBy) async {
+    if (currentUserId == null) return;
+
+    final videoRef = _firestore.collection('videos').doc(videoId);
+    if (likedBy.contains(currentUserId)) {
+      await videoRef.update({
+        'likedBy': FieldValue.arrayRemove([currentUserId]),
+        'likes': FieldValue.increment(-1),
+      });
+    } else {
+      await videoRef.update({
+        'likedBy': FieldValue.arrayUnion([currentUserId]),
+        'likes': FieldValue.increment(1),
+      });
+    }
+  }
+
+  // Save video
+  Future<void> toggleSave(String videoId, List<dynamic> savedBy) async {
+    if (currentUserId == null) return;
+
+    final videoRef = _firestore.collection('videos').doc(videoId);
+    if (savedBy.contains(currentUserId)) {
+      await videoRef.update({
+        'savedBy': FieldValue.arrayRemove([currentUserId]),
+        'saves': FieldValue.increment(-1),
+      });
+    } else {
+      await videoRef.update({
+        'savedBy': FieldValue.arrayUnion([currentUserId]),
+        'saves': FieldValue.increment(1),
+      });
+    }
+  }
 }

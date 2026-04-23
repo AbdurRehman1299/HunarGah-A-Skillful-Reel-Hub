@@ -1,7 +1,8 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:hunargah/database/firebase_service.dart';
 import 'package:video_player/video_player.dart';
+import 'package:visibility_detector/visibility_detector.dart';
 
 class LearnerFeedScreen extends StatefulWidget {
   const LearnerFeedScreen({super.key});
@@ -29,7 +30,7 @@ class _LearnerFeedScreenState extends State<LearnerFeedScreen> {
         children: [
           // -- The Vertical Scrolling Feed --
           StreamBuilder<QuerySnapshot>(
-            stream: FirebaseFirestore.instance.collection('videos').snapshots(),
+            stream: FirebaseService().getVideosStream(),
             builder: (context, snapshot) {
               if (snapshot.connectionState == ConnectionState.waiting) {
                 return Center(
@@ -117,7 +118,7 @@ class _LearnerFeedScreenState extends State<LearnerFeedScreen> {
 
             IconButton(
               onPressed: () {
-                Navigator.pushNamed(context, '/settings');
+                Navigator.of(context).pushNamed('/settings');
               },
               icon: const Icon(Icons.settings_outlined, color: Colors.white),
             ),
@@ -346,12 +347,27 @@ class VideoFeedItem extends StatefulWidget {
 class _VideoFeedItemState extends State<VideoFeedItem> {
   late VideoPlayerController _videoPlayerController;
   bool _isVideoInitialized = false;
-  final String? _currentUserId = FirebaseAuth.instance.currentUser?.uid;
+  final String? _currentUserId = FirebaseService().currentUserId;
 
   @override
   void initState() {
     super.initState();
     _initializeVideo();
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+
+    final bool isCurrent = ModalRoute.of(context)?.isCurrent ?? false;
+
+    if (_isVideoInitialized) {
+      if (!isCurrent && _videoPlayerController.value.isPlaying) {
+        _videoPlayerController.pause();
+      } else if (isCurrent && !_videoPlayerController.value.isPlaying) {
+        _videoPlayerController.play();
+      }
+    }
   }
 
   void _initializeVideo() {
@@ -361,16 +377,19 @@ class _VideoFeedItemState extends State<VideoFeedItem> {
             Uri.parse(widget.videoData['videoUrl']),
           )
           ..initialize().then((_) {
-            setState(() {
-              _isVideoInitialized = true;
-            });
-            _videoPlayerController.setLooping(true);
-            _videoPlayerController.play();
+            if (mounted) {
+              setState(() {
+                _isVideoInitialized = true;
+              });
+              _videoPlayerController.setLooping(true);
+              _videoPlayerController.play();
+            }
           });
   }
 
   @override
   void dispose() {
+    _videoPlayerController.pause();
     _videoPlayerController.dispose();
     super.dispose();
   }
@@ -385,259 +404,248 @@ class _VideoFeedItemState extends State<VideoFeedItem> {
   }
 
   Future<void> _toggleLike() async {
-    if (_currentUserId == null) return;
-
-    final videoRef = FirebaseFirestore.instance
-        .collection('videos')
-        .doc(widget.videoId);
-
-    List<dynamic> likedBy = widget.videoData['likedBy'] ?? [];
-    final isLiked = likedBy.contains(_currentUserId);
-
-    if (isLiked) {
-      await videoRef.update({
-        'likedBy': FieldValue.arrayRemove([_currentUserId]),
-        'likes': FieldValue.increment(-1),
-      });
-    } else {
-      await videoRef.update({
-        'likedBy': FieldValue.arrayUnion([_currentUserId]),
-        'likes': FieldValue.increment(1),
-      });
-    }
+    await FirebaseService().toggleLike(
+      widget.videoId,
+      widget.videoData['likedBy'] ?? [],
+    );
   }
 
   Future<void> _toggleSave() async {
-    if (_currentUserId == null) return;
-
-    final videoRef = FirebaseFirestore.instance
-        .collection('videos')
-        .doc(widget.videoId);
-
-    List<dynamic> savedBy = widget.videoData['savedBy'] ?? [];
-    final isSaved = savedBy.contains(_currentUserId);
-
-    if (isSaved) {
-      await videoRef.update({
-        'savedBy': FieldValue.arrayRemove([_currentUserId]),
-        'saves': FieldValue.increment(-1),
-      });
-    } else {
-      await videoRef.update({
-        'savedBy': FieldValue.arrayUnion([_currentUserId]),
-        'saves': FieldValue.increment(1),
-      });
-    }
+    await FirebaseService().toggleSave(
+      widget.videoId,
+      widget.videoData['savedBy'] ?? [],
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     final themeColor = Theme.of(context).primaryColor;
 
-    final likes = widget.videoData['likes'] ?? 0;
-    final saves = widget.videoData['saves'] ?? 0;
-    final likedBy = widget.videoData['likedBy'] ?? [];
-    final savedBy = widget.videoData['savedBy'] ?? [];
+    final data = widget.videoData;
 
-    final isLiked = _currentUserId != null && likedBy.contains(_currentUserId);
+    final List<dynamic> likedBy = data['likedBy'] ?? [];
+    final List<dynamic> savedBy = data['savedBy'] ?? [];
+
+    final String likeCount = likedBy.length.toString();
+    final String saveCount = savedBy.length.toString();
+
+    final bool isLiked =
+        _currentUserId != null && likedBy.contains(_currentUserId);
     final isSaved = _currentUserId != null && savedBy.contains(_currentUserId);
 
-    return Stack(
-      fit: StackFit.expand,
-      children: [
-        // -- Video Player --
-        GestureDetector(
-          behavior: HitTestBehavior.deferToChild,
-          onTap: () {
-            // Play/Pause on tap
-            setState(() {
-              _videoPlayerController.value.isPlaying
-                  ? _videoPlayerController.pause()
-                  : _videoPlayerController.play();
-            });
-          },
-          child: Center(
-            child: _isVideoInitialized
-                ? AspectRatio(
-                    aspectRatio: _videoPlayerController.value.aspectRatio,
-                    child: VideoPlayer(_videoPlayerController),
-                  )
-                : Center(child: CircularProgressIndicator(color: themeColor)),
-          ),
-        ),
+    return VisibilityDetector(
+      key: Key(widget.videoId),
+      onVisibilityChanged: (visibilityInfo) {
+        var visibilityPercentage = visibilityInfo.visibleFraction * 100;
 
-        // -- Play Icon Overlay when paused --
-        if (!_videoPlayerController.value.isPlaying && _isVideoInitialized)
-          const IgnorePointer(
+        if (mounted && _isVideoInitialized) {
+          if (visibilityPercentage < 50) {
+            _videoPlayerController.pause();
+          } else {
+            _videoPlayerController.play();
+          }
+        }
+      },
+      child: Stack(
+        fit: StackFit.expand,
+        children: [
+          // -- Video Player --
+          GestureDetector(
+            behavior: HitTestBehavior.deferToChild,
+            onTap: () {
+              // Play/Pause on tap
+              setState(() {
+                _videoPlayerController.value.isPlaying
+                    ? _videoPlayerController.pause()
+                    : _videoPlayerController.play();
+              });
+            },
             child: Center(
-              child: Icon(Icons.play_arrow, color: Colors.white70, size: 64),
+              child: _isVideoInitialized
+                  ? AspectRatio(
+                      aspectRatio: _videoPlayerController.value.aspectRatio,
+                      child: VideoPlayer(_videoPlayerController),
+                    )
+                  : Center(child: CircularProgressIndicator(color: themeColor)),
             ),
           ),
 
-        // -- Bottom Gradient Overlay for Text Visibility --
-        IgnorePointer(
-          child: Container(
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.bottomCenter,
-                end: Alignment.topCenter,
-                colors: [
-                  Colors.black.withValues(alpha: 0.8),
-                  Colors.transparent,
-                ],
-                stops: const [0.0, 0.4],
+          // -- Play Icon Overlay when paused --
+          if (!_videoPlayerController.value.isPlaying && _isVideoInitialized)
+            const IgnorePointer(
+              child: Center(
+                child: Icon(Icons.play_arrow, color: Colors.white70, size: 64),
+              ),
+            ),
+
+          // -- Bottom Gradient Overlay for Text Visibility --
+          IgnorePointer(
+            child: Container(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.bottomCenter,
+                  end: Alignment.topCenter,
+                  colors: [
+                    Colors.black.withValues(alpha: 0.8),
+                    Colors.transparent,
+                  ],
+                  stops: const [0.0, 0.4],
+                ),
               ),
             ),
           ),
-        ),
 
-        // -- Right Action Buttons --
-        Positioned(
-          right: 12,
-          bottom: 20,
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.end,
-            children: [
-              // Uploader Avatar
-              SizedBox(
-                height: 60,
-                width: 50,
-                child: Stack(
-                  alignment: Alignment.topCenter,
-                  children: [
-                    const CircleAvatar(
-                      radius: 24,
-                      backgroundImage: NetworkImage(
-                        'https://i.pravatar.cc/150?img=11',
+          // -- Right Action Buttons --
+          Positioned(
+            right: 12,
+            bottom: 20,
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                // Uploader Avatar
+                SizedBox(
+                  height: 60,
+                  width: 50,
+                  child: Stack(
+                    alignment: Alignment.topCenter,
+                    children: [
+                      const CircleAvatar(
+                        radius: 24,
+                        backgroundImage: NetworkImage(
+                          'https://i.pravatar.cc/150?img=11',
+                        ),
                       ),
-                    ),
-                    Positioned(
-                      bottom: 0,
-                      child: GestureDetector(
-                        onTap: () => _showDummySnackBar('Subscribe'),
-                        child: Container(
-                          padding: const EdgeInsets.all(2),
-                          decoration: BoxDecoration(
-                            color: themeColor,
-                            shape: BoxShape.circle,
+                      Positioned(
+                        bottom: 0,
+                        child: GestureDetector(
+                          onTap: () => _showDummySnackBar('Subscribe'),
+                          child: Container(
+                            padding: const EdgeInsets.all(2),
+                            decoration: BoxDecoration(
+                              color: themeColor,
+                              shape: BoxShape.circle,
+                            ),
+                            child: const Icon(
+                              Icons.add,
+                              color: Colors.white,
+                              size: 14,
+                            ),
                           ),
-                          child: const Icon(
-                            Icons.add,
-                            color: Colors.white,
-                            size: 14,
-                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+
+                const SizedBox(height: 20),
+
+                // -- Like Button --
+                _buildActionButton(
+                  icon: isLiked ? Icons.favorite : Icons.favorite_border,
+                  color: isLiked ? Colors.red : Colors.white,
+                  label: likeCount,
+                  onTap: _toggleLike,
+                ),
+
+                // -- Comment Button --
+                _buildActionButton(
+                  icon: Icons.chat_bubble_outline,
+                  label: '12',
+                  onTap: () => _showDummySnackBar('Comments'),
+                ),
+
+                // -- Save Button --
+                _buildActionButton(
+                  icon: isSaved ? Icons.bookmark : Icons.bookmark_border,
+                  color: isSaved ? Colors.amber : Colors.white,
+                  label: saveCount,
+                  onTap: _toggleSave,
+                ),
+
+                // -- Share Button --
+                _buildActionButton(
+                  icon: Icons.reply,
+                  label: 'Share',
+                  isShare: true,
+                  onTap: () => _showDummySnackBar("Share"),
+                ),
+              ],
+            ),
+          ),
+
+          // -- Bottom Left Content --
+          Positioned(
+            left: 16,
+            bottom: 20,
+            right: 80,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  data['username'] ?? '@Unknown',
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 16,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  data['title'] ?? '',
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 15,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  data['description'] ?? '',
+                  style: const TextStyle(color: Colors.white70, fontSize: 13),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  data['tags'] ?? '',
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 13,
+                  ),
+                ),
+                const SizedBox(height: 12),
+                Row(
+                  children: [
+                    const Icon(Icons.music_note, color: Colors.white, size: 16),
+                    const SizedBox(width: 8),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 4,
+                      ),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withValues(alpha: 0.2),
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(
+                          color: Colors.white.withValues(alpha: 0.3),
+                        ),
+                      ),
+                      child: Text(
+                        data['audio'] ?? 'Original Audio',
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 11,
                         ),
                       ),
                     ),
                   ],
                 ),
-              ),
-
-              const SizedBox(height: 20),
-
-              // -- Like Button --
-              _buildActionButton(
-                icon: isLiked ? Icons.favorite : Icons.favorite_border,
-                color: isLiked ? Colors.red : Colors.white,
-                label: likes.toString(),
-                onTap: _toggleLike,
-              ),
-
-              // -- Comment Button --
-              _buildActionButton(
-                icon: Icons.chat_bubble_outline,
-                label: '12',
-                onTap: () => _showDummySnackBar('Comments'),
-              ),
-
-              // -- Save Button --
-              _buildActionButton(
-                icon: isSaved ? Icons.bookmark : Icons.bookmark_border,
-                color: isSaved ? Colors.amber : Colors.white,
-                label: saves.toString(),
-                onTap: _toggleSave,
-              ),
-
-              // -- Share Button --
-              _buildActionButton(
-                icon: Icons.reply,
-                label: 'Share',
-                isShare: true,
-                onTap: () => _showDummySnackBar("Share"),
-              ),
-            ],
+              ],
+            ),
           ),
-        ),
-
-        // -- Bottom Left Content --
-        Positioned(
-          left: 16,
-          bottom: 20,
-          right: 80,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                widget.videoData['username'] ?? '@Unknown',
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontWeight: FontWeight.bold,
-                  fontSize: 16,
-                ),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                widget.videoData['title'] ?? '',
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontWeight: FontWeight.bold,
-                  fontSize: 15,
-                ),
-              ),
-              const SizedBox(height: 4),
-              Text(
-                widget.videoData['description'] ?? '',
-                style: const TextStyle(color: Colors.white70, fontSize: 13),
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-              ),
-              const SizedBox(height: 4),
-              Text(
-                widget.videoData['tags'] ?? '',
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontWeight: FontWeight.bold,
-                  fontSize: 13,
-                ),
-              ),
-              const SizedBox(height: 12),
-              Row(
-                children: [
-                  const Icon(Icons.music_note, color: Colors.white, size: 16),
-                  const SizedBox(width: 8),
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 4,
-                    ),
-                    decoration: BoxDecoration(
-                      color: Colors.white.withValues(alpha: 0.2),
-                      borderRadius: BorderRadius.circular(16),
-                      border: Border.all(
-                        color: Colors.white.withValues(alpha: 0.3),
-                      ),
-                    ),
-                    child: Text(
-                      widget.videoData['audio'] ?? 'Original Audio',
-                      style: const TextStyle(color: Colors.white, fontSize: 11),
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 
