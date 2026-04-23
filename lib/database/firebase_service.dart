@@ -261,4 +261,12 @@ class FirebaseService {
       });
     }
   }
+
+  // Explore Screen Section
+  Stream<QuerySnapshot> getUstadsStream() {
+    return _firestore
+        .collection('users')
+        .where('role', isEqualTo: 'ustad')
+        .snapshots();
+  }
 }

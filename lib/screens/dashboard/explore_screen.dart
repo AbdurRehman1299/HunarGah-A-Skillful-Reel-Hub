@@ -4,6 +4,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:hunargah/bottom_sheets/filter_bottom_sheet.dart';
 import 'package:hunargah/components/app_bar.dart';
+import 'package:hunargah/database/firebase_service.dart';
 
 class ExploreScreen extends StatefulWidget {
   const ExploreScreen({super.key});
@@ -66,10 +67,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
 
             // -- List Ustad Cards --
             StreamBuilder<QuerySnapshot>(
-              stream: FirebaseFirestore.instance
-                  .collection('users')
-                  .where('role', isEqualTo: 'ustad')
-                  .snapshots(),
+              stream: FirebaseService().getUstadsStream(),
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
                   return Center(
@@ -184,7 +182,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
             isActive: _selectedSkill == skill,
             onTap: () {
               setState(() {
-                _selectedSkill == skill;
+                _selectedSkill = skill;
               });
             },
           );

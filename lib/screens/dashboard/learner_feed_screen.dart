@@ -396,9 +396,10 @@ class _VideoFeedItemState extends State<VideoFeedItem> {
     super.dispose();
   }
 
-  void _showComments() {
+  void _showComments() async {
     final themeColor = Theme.of(context).primaryColor;
-    showModalBottomSheet(
+    _videoPlayerController.pause();
+    await showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.white,
@@ -502,6 +503,10 @@ class _VideoFeedItemState extends State<VideoFeedItem> {
         ),
       ),
     );
+
+    if (mounted) {
+      _videoPlayerController.play();
+    }
   }
 
   Future<void> _toggleLike() async {
@@ -562,13 +567,17 @@ class _VideoFeedItemState extends State<VideoFeedItem> {
                     : _videoPlayerController.play();
               });
             },
-            child: Center(
-              child: _isVideoInitialized
-                  ? AspectRatio(
-                      aspectRatio: _videoPlayerController.value.aspectRatio,
-                      child: VideoPlayer(_videoPlayerController),
-                    )
-                  : Center(child: CircularProgressIndicator(color: themeColor)),
+            child: RepaintBoundary(
+              child: Center(
+                child: _isVideoInitialized
+                    ? AspectRatio(
+                        aspectRatio: _videoPlayerController.value.aspectRatio,
+                        child: VideoPlayer(_videoPlayerController),
+                      )
+                    : Center(
+                        child: CircularProgressIndicator(color: themeColor),
+                      ),
+              ),
             ),
           ),
 
