@@ -1,5 +1,6 @@
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
+import 'package:hunargah/screens/utils/route_observer.dart';
 import 'firebase_options.dart';
 import 'package:hunargah/screens/dashboard/main_dashboard.dart';
 import 'package:hunargah/screens/courses/course_playlist_screen.dart';
@@ -36,6 +37,7 @@ class MainApp extends StatelessWidget {
     return MaterialApp(
       title: 'HunarGah',
       debugShowCheckedModeBanner: false,
+      navigatorObservers: [routeObserver],
       home: SplashScreen(),
 
       // Define the all routes

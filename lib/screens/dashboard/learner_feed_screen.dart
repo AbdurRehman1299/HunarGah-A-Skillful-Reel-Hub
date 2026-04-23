@@ -1,11 +1,14 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:hunargah/database/firebase_service.dart';
+import 'package:hunargah/screens/utils/route_observer.dart';
 import 'package:video_player/video_player.dart';
 import 'package:visibility_detector/visibility_detector.dart';
 
 class LearnerFeedScreen extends StatefulWidget {
-  const LearnerFeedScreen({super.key});
+  final bool isActive;
+
+  const LearnerFeedScreen({super.key, required this.isActive});
 
   @override
   State<LearnerFeedScreen> createState() => _LearnerFeedScreenState();
@@ -57,7 +60,11 @@ class _LearnerFeedScreenState extends State<LearnerFeedScreen> {
                   final videoData = video[index].data() as Map<String, dynamic>;
                   final videoId = video[index].id;
 
-                  return VideoFeedItem(videoData: videoData, videoId: videoId);
+                  return VideoFeedItem(
+                    videoData: videoData,
+                    videoId: videoId,
+                    isTabActive: widget.isActive,
+                  );
                 },
               );
             },
@@ -333,20 +340,24 @@ class _LearnerFeedScreenState extends State<LearnerFeedScreen> {
 class VideoFeedItem extends StatefulWidget {
   final Map<String, dynamic> videoData;
   final String videoId;
+  final bool isTabActive;
 
   const VideoFeedItem({
     super.key,
     required this.videoData,
     required this.videoId,
+    required this.isTabActive,
   });
 
   @override
   State<VideoFeedItem> createState() => _VideoFeedItemState();
 }
 
-class _VideoFeedItemState extends State<VideoFeedItem> {
+class _VideoFeedItemState extends State<VideoFeedItem> with RouteAware {
   late VideoPlayerController _videoPlayerController;
   bool _isVideoInitialized = false;
+  bool _isRouteActive = true;
+  bool _isVisible = false;
   final TextEditingController _commentController = TextEditingController();
   final String? _currentUserId = FirebaseService().currentUserId;
 
@@ -359,15 +370,39 @@ class _VideoFeedItemState extends State<VideoFeedItem> {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
+    routeObserver.subscribe(this, ModalRoute.of(context)!);
+  }
 
-    final bool isCurrent = ModalRoute.of(context)?.isCurrent ?? false;
+  @override
+  void didUpdateWidget(VideoFeedItem oldWidget) {
+    super.didUpdateWidget(oldWidget);
 
-    if (_isVideoInitialized) {
-      if (!isCurrent && _videoPlayerController.value.isPlaying) {
-        _videoPlayerController.pause();
-      } else if (isCurrent && !_videoPlayerController.value.isPlaying) {
-        _videoPlayerController.play();
-      }
+    if (oldWidget.isTabActive != widget.isTabActive) {
+      _updatePlayback();
+    }
+  }
+
+  @override
+  void didPushNext() {
+    _isRouteActive = false;
+    _updatePlayback();
+  }
+
+  @override
+  void didPopNext() {
+    _isRouteActive = true;
+    _updatePlayback();
+  }
+
+  void _updatePlayback() {
+    if (!mounted || !_isVideoInitialized) return;
+
+    final shouldPlay = _isVisible && _isRouteActive && widget.isTabActive;
+
+    if (shouldPlay) {
+      _videoPlayerController.play();
+    } else {
+      _videoPlayerController.pause();
     }
   }
 
@@ -383,13 +418,14 @@ class _VideoFeedItemState extends State<VideoFeedItem> {
                 _isVideoInitialized = true;
               });
               _videoPlayerController.setLooping(true);
-              _videoPlayerController.play();
+              _updatePlayback();
             }
           });
   }
 
   @override
   void dispose() {
+    routeObserver.unsubscribe(this);
     _videoPlayerController.pause();
     _videoPlayerController.dispose();
     _commentController.dispose();
@@ -543,15 +579,10 @@ class _VideoFeedItemState extends State<VideoFeedItem> {
     return VisibilityDetector(
       key: Key(widget.videoId),
       onVisibilityChanged: (visibilityInfo) {
-        var visibilityPercentage = visibilityInfo.visibleFraction * 100;
+        if (!mounted) return;
 
-        if (mounted && _isVideoInitialized) {
-          if (visibilityPercentage < 50) {
-            _videoPlayerController.pause();
-          } else {
-            _videoPlayerController.play();
-          }
-        }
+        _isVisible = visibilityInfo.visibleFraction >= 0.5;
+        _updatePlayback();
       },
       child: Stack(
         fit: StackFit.expand,
