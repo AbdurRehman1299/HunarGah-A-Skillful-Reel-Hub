@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:hunargah/components/app_bar.dart';
 import 'package:hunargah/database/firebase_service.dart';
@@ -17,6 +18,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
   bool _isLoading = true;
   bool _isCreatorMode = false;
   int _selectedTabIndex = 0;
+  String? _uid;
 
   @override
   void initState() {
@@ -26,20 +28,18 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
 
   Future<void> _loadUserData() async {
     final data = await FirebaseService().getUserData();
+    final uid = FirebaseService().currentUserId;
     if (mounted) {
       setState(() {
         _userData = data;
+        _uid = uid;
         _isLoading = false;
       });
     }
   }
 
-  void _showShareBottomSheet(
-    BuildContext context,
-    String name,
-    String username,
-  ) {
-    final Color themeColor = const Color(0xFF00BFA5);
+  void _showShareOption(BuildContext context, String name, String username) {
+    final themeColor = Theme.of(context).primaryColor;
     final String profileLink = "hunargah.app/@$username";
     final String shareText =
         "Check out $name's profile on Hunargah: $profileLink";
@@ -299,36 +299,10 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
               const SizedBox(height: 16),
 
               // -- Grid View --
-              if (_selectedTabIndex == 0)
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                  child: GridView.builder(
-                    shrinkWrap: true,
-                    physics: const NeverScrollableScrollPhysics(),
-                    gridDelegate:
-                        const SliverGridDelegateWithFixedCrossAxisCount(
-                          crossAxisCount: 2,
-                          crossAxisSpacing: 16,
-                          mainAxisSpacing: 24,
-                          childAspectRatio:
-                              0.85, // Adjusts height vs width of cards
-                        ),
-                    itemCount: 4,
-                    itemBuilder: (context, index) {
-                      return _buildGridCard(index);
-                    },
-                  ),
-                )
-              else
-                const Center(
-                  child: Padding(
-                    padding: EdgeInsets.all(40.0),
-                    child: Text(
-                      'No certificates yet.',
-                      style: TextStyle(color: Colors.grey),
-                    ),
-                  ),
-                ),
+              if (_uid != null)
+                _selectedTabIndex == 0
+                    ? _buildSavedVideosGrid()
+                    : _buildCertificatesList(),
 
               const SizedBox(height: 40),
             ],
@@ -423,7 +397,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
           const SizedBox(width: 12),
           Expanded(
             child: OutlinedButton(
-              onPressed: () => _showShareBottomSheet(context, name, username),
+              onPressed: () => _showShareOption(context, name, username),
               style: OutlinedButton.styleFrom(
                 side: BorderSide(color: Colors.grey[300]!),
                 shape: RoundedRectangleBorder(
@@ -492,71 +466,342 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
         children: [
           _buildAvatar(base64Image, themeColor),
           const SizedBox(width: 24),
-          // Stats
-          profileStats(),
+          if (_uid != null)
+            Expanded(
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  _buildLiveStatColumn(
+                    stream: FirebaseService().getPostCountStream(_uid!),
+                    label: 'Posts',
+                  ),
+                  _buildLiveStatColumn(
+                    stream: FirebaseService().getFollowerCountStream(_uid!),
+                    label: 'Followers',
+                  ),
+                  _buildLiveStatColumn(
+                    stream: FirebaseService().getFollowingCountStream(_uid!),
+                    label: 'Following',
+                  ),
+                ],
+              ),
+            ),
         ],
       ),
     );
   }
 
-  Expanded profileStats() {
-    return Expanded(
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-        children: [
-          _buildStatColumn('128', 'Posts'),
-          _buildStatColumn('14.2k', 'Followers'),
-          _buildStatColumn('842', 'Following'),
-        ],
-      ),
+  Widget _buildAvatar(String? imageString, Color themeColor) {
+    ImageProvider? imageProvider;
+
+    if (imageString != null && imageString.isNotEmpty) {
+      if (imageString.startsWith('http')) {
+        imageProvider = NetworkImage(imageString);
+      } else {
+        try {
+          imageProvider = MemoryImage(base64Decode(imageString));
+        } catch (e) {
+          debugPrint("Image Decode Error: $e");
+        }
+      }
+    }
+
+    return CircleAvatar(
+      radius: 40,
+      backgroundColor: themeColor.withValues(alpha: 0.1),
+      backgroundImage: imageProvider,
+      child: imageProvider == null
+          ? Icon(Icons.person, size: 40, color: themeColor)
+          : null,
     );
   }
 
-  Widget _buildAvatar(String? base64String, Color themeColor) {
-    return Stack(
+  // Reusable Widget: Real-time count from Firestore
+  Widget _buildLiveStatColumn({
+    required Stream<int> stream,
+    required String label,
+  }) {
+    return StreamBuilder<int>(
+      stream: stream,
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return SizedBox(
+            height: 20,
+            width: 20,
+            child: CircularProgressIndicator(strokeWidth: 2),
+          );
+        }
+
+        final count = snapshot.data ?? 0;
+        final display = count >= 1000
+            ? '${(count / 1000).toStringAsFixed(1)}k'
+            : count.toString();
+
+        return Column(
+          children: [
+            Text(
+              display,
+              style: const TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+                color: Colors.black,
+              ),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              label,
+              style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  // Reusable Widget: Saved videos grid
+  Widget _buildSavedVideosGrid() {
+    return StreamBuilder<QuerySnapshot>(
+      stream: FirebaseService().getSavedVideosStream(_uid!),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Center(child: CircularProgressIndicator());
+        }
+
+        if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+          return const Center(
+            child: Padding(
+              padding: EdgeInsets.all(40),
+              child: Text(
+                'No saved videos yet.',
+                style: TextStyle(color: Colors.grey),
+              ),
+            ),
+          );
+        }
+
+        final videos = snapshot.data!.docs;
+
+        return Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 20),
+          child: GridView.builder(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: 2,
+              crossAxisSpacing: 16,
+              mainAxisSpacing: 24,
+              childAspectRatio: 0.85,
+            ),
+            itemCount: videos.length,
+            itemBuilder: (context, index) {
+              final video = videos[index].data() as Map<String, dynamic>;
+              return _buildVideoCard(video);
+            },
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildVideoCard(Map<String, dynamic> video) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        CircleAvatar(
-          radius: 40,
-          backgroundColor: themeColor.withValues(alpha: 0.1),
-          backgroundImage: (base64String != null && base64String.isNotEmpty)
-              ? MemoryImage(base64Decode(base64String))
-              : null,
-          child: (base64String == null || base64String.isEmpty)
-              ? Icon(Icons.person, size: 40, color: themeColor)
-              : null,
-        ),
-        Positioned(
-          bottom: 2,
-          right: 2,
+        Expanded(
           child: Container(
-            width: 18,
-            height: 18,
             decoration: BoxDecoration(
-              color: Colors.green[500],
-              shape: BoxShape.circle,
-              border: Border.all(color: Colors.white, width: 3),
+              borderRadius: BorderRadius.circular(12),
+              color: Colors.grey[200],
+              image: video['thumbnailUrl'] != null
+                  ? DecorationImage(
+                      image: NetworkImage(video['thumbnailUrl']),
+                      fit: BoxFit.cover,
+                    )
+                  : null,
+            ),
+            child: Stack(
+              children: [
+                // Play icon overlay
+                const Center(
+                  child: Icon(
+                    Icons.play_circle_outline,
+                    color: Colors.white70,
+                    size: 36,
+                  ),
+                ),
+                // Views pill
+                Positioned(
+                  bottom: 8,
+                  right: 8,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 4,
+                    ),
+                    decoration: BoxDecoration(
+                      color: Colors.black54,
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Row(
+                      children: [
+                        const Icon(
+                          Icons.favorite,
+                          color: Colors.white,
+                          size: 10,
+                        ),
+                        const SizedBox(width: 4),
+                        Text(
+                          '${(video['likedBy'] as List?)?.length ?? 0}',
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 10,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
             ),
           ),
         ),
+        const SizedBox(height: 8),
+        Text(
+          video['title'] ?? 'Untitled',
+          style: const TextStyle(
+            fontWeight: FontWeight.bold,
+            fontSize: 12,
+            color: Colors.black87,
+          ),
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+        ),
+        Text(
+          video['username'] ?? '',
+          style: TextStyle(fontSize: 11, color: Colors.grey[500]),
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+        ),
       ],
     );
   }
 
-  // Reusable Widget: Build Stat Column
-  Widget _buildStatColumn(String count, String label) {
-    return Column(
-      children: [
-        Text(
-          count,
-          style: const TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.bold,
-            color: Colors.black,
+  // Reusable Widget: Certificates List
+  Widget _buildCertificatesList() {
+    return StreamBuilder<QuerySnapshot>(
+      stream: FirebaseService().getCertificatesStream(_uid!),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Center(child: CircularProgressIndicator());
+        }
+
+        if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+          return const Center(
+            child: Padding(
+              padding: EdgeInsets.all(40),
+              child: Text(
+                'No certificates yet.',
+                style: TextStyle(color: Colors.grey),
+              ),
+            ),
+          );
+        }
+
+        final certs = snapshot.data!.docs;
+
+        return Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 20),
+          child: ListView.separated(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            itemCount: certs.length,
+            separatorBuilder: (_, _) => const SizedBox(height: 12),
+            itemBuilder: (context, index) {
+              final cert = certs[index].data() as Map<String, dynamic>;
+              return _buildCertificateCard(cert);
+            },
           ),
-        ),
-        const SizedBox(height: 4),
-        Text(label, style: TextStyle(fontSize: 12, color: Colors.grey[600])),
-      ],
+        );
+      },
+    );
+  }
+
+  // Reusable Widget: Certificate Cards
+  Widget _buildCertificateCard(Map<String, dynamic> cert) {
+    final themeColor = Theme.of(context).primaryColor;
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.grey[200]!),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.04),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 56,
+            height: 56,
+            decoration: BoxDecoration(
+              color: themeColor.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: cert['imageUrl'] != null
+                ? ClipRRect(
+                    borderRadius: BorderRadius.circular(10),
+                    child: Image.network(cert['imageUrl'], fit: BoxFit.cover),
+                  )
+                : Icon(Icons.workspace_premium, color: themeColor, size: 28),
+          ),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  cert['title'] ?? 'Certificate',
+                  style: const TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 14,
+                    color: Colors.black87,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  cert['issuedBy'] ?? 'HunarGah',
+                  style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  cert['date'] ?? '',
+                  style: TextStyle(fontSize: 11, color: Colors.grey[400]),
+                ),
+              ],
+            ),
+          ),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+            decoration: BoxDecoration(
+              color: themeColor.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(6),
+            ),
+            child: Text(
+              'Verified',
+              style: TextStyle(
+                fontSize: 10,
+                fontWeight: FontWeight.bold,
+                color: themeColor,
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -623,92 +868,6 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
           ),
         ),
       ),
-    );
-  }
-
-  // Reusable Widget: Build Grid Items
-  Widget _buildGridCard(int index) {
-    // Mock data for the visual
-    final List<Map<String, String>> mockData = [
-      {
-        'title': 'UI Inspiration',
-        'count': '24 items',
-        'image':
-            'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=300&auto=format&fit=crop',
-      },
-      {
-        'title': 'Color Palettes',
-        'count': '12 items',
-        'image':
-            'https://images.unsplash.com/photo-1550684848-fac1c5b4e853?q=80&w=300&auto=format&fit=crop',
-      },
-      {
-        'title': 'UX Research',
-        'count': '8 items',
-        'image':
-            'https://images.unsplash.com/photo-1542435503-956c469947f6?q=80&w=300&auto=format&fit=crop',
-      },
-      {
-        'title': 'Case Studies',
-        'count': '15 items',
-        'image':
-            'https://images.unsplash.com/photo-1551288049-bebda4e38f71?q=80&w=300&auto=format&fit=crop',
-      },
-    ];
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Expanded(
-          child: Container(
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(12),
-              image: DecorationImage(
-                image: NetworkImage(mockData[index]['image']!),
-                fit: BoxFit.cover,
-              ),
-            ),
-            child: Stack(
-              children: [
-                // Item count pill at bottom right
-                Positioned(
-                  bottom: 8,
-                  right: 8,
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 8,
-                      vertical: 4,
-                    ),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Text(
-                      mockData[index]['count']!,
-                      style: const TextStyle(
-                        fontSize: 10,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.black87,
-                      ),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-        const SizedBox(height: 8),
-        Text(
-          mockData[index]['title']!,
-          style: const TextStyle(
-            fontWeight: FontWeight.bold,
-            fontSize: 12,
-            color: Colors.black87,
-          ),
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
-        ),
-      ],
     );
   }
 

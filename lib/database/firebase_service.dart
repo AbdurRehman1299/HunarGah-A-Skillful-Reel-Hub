@@ -46,6 +46,8 @@ class FirebaseService {
         await _firestore.collection('users').doc(user.uid).set({
           'uid': user.uid,
           'username': username.trim(),
+          'fullName': username.trim(),
+          'bio': 'No bio yet.',
           'email': email.trim(),
           'createdAt': FieldValue.serverTimestamp(),
           'city': '',
@@ -53,6 +55,8 @@ class FirebaseService {
           'language': '',
           'skills': [],
           'profileImageUrl': '',
+          'role': 'learner',
+          'profession': 'student',
         });
 
         return null;
@@ -188,6 +192,53 @@ class FirebaseService {
     }
   }
 
+  // Get real-time Followers count
+  Stream<int> getFollowerCountStream(String uid) {
+    return _firestore
+        .collection('users')
+        .doc(uid)
+        .collection('followers')
+        .snapshots()
+        .map((snap) => snap.docs.length);
+  }
+
+  // Get real-time Following count
+  Stream<int> getFollowingCountStream(String uid) {
+    return _firestore
+        .collection('users')
+        .doc(uid)
+        .collection('following')
+        .snapshots()
+        .map((snap) => snap.size);
+  }
+
+  // Get real-time Post count
+  Stream<int> getPostCountStream(String uid) {
+    return _firestore
+        .collection('videos')
+        .where('uid', isEqualTo: uid)
+        .snapshots()
+        .map((snap) => snap.size);
+  }
+
+  // Fetch saved videos
+  Stream<QuerySnapshot> getSavedVideosStream(String uid) {
+    return _firestore
+        .collection('videos')
+        .where('savedBy', arrayContains: uid)
+        .snapshots();
+  }
+
+  // Fetch certificates
+  Stream<QuerySnapshot> getCertificatesStream(String uid) {
+    return _firestore
+        .collection('users')
+        .doc(uid)
+        .collection('certificates')
+        .orderBy('date', descending: true)
+        .snapshots();
+  }
+
   // -- Video Fetch Logic -- Start from here
   String? get currentUserId => _auth.currentUser?.uid;
 
@@ -197,10 +248,13 @@ class FirebaseService {
   }
 
   // Like video
-  Future<void> toggleLike(String videoId, List<dynamic> likedBy) async {
+  Future<void> toggleLike(String videoId) async {
     if (currentUserId == null) return;
 
     final videoRef = _firestore.collection('videos').doc(videoId);
+    final doc = await videoRef.get();
+    final List likedBy = doc.data()?['likedBy'] ?? [];
+
     if (likedBy.contains(currentUserId)) {
       await videoRef.update({
         'likedBy': FieldValue.arrayRemove([currentUserId]),
@@ -245,10 +299,13 @@ class FirebaseService {
   }
 
   // Save video
-  Future<void> toggleSave(String videoId, List<dynamic> savedBy) async {
+  Future<void> toggleSave(String videoId) async {
     if (currentUserId == null) return;
 
     final videoRef = _firestore.collection('videos').doc(videoId);
+    final doc = await videoRef.get();
+    final List savedBy = doc.data()?['savedBy'] ?? [];
+
     if (savedBy.contains(currentUserId)) {
       await videoRef.update({
         'savedBy': FieldValue.arrayRemove([currentUserId]),

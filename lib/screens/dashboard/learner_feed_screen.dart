@@ -780,17 +780,11 @@ class _VideoFeedItemState extends State<VideoFeedItem> with RouteAware {
   }
 
   Future<void> _toggleLike() async {
-    await FirebaseService().toggleLike(
-      widget.videoId,
-      widget.videoData['likedBy'] ?? [],
-    );
+    await FirebaseService().toggleLike(widget.videoId);
   }
 
   Future<void> _toggleSave() async {
-    await FirebaseService().toggleSave(
-      widget.videoId,
-      widget.videoData['savedBy'] ?? [],
-    );
+    await FirebaseService().toggleSave(widget.videoId);
   }
 
   @override
@@ -799,12 +793,14 @@ class _VideoFeedItemState extends State<VideoFeedItem> with RouteAware {
 
     final data = widget.videoData;
 
+    final int likes = data['likes'] ?? 0;
+    final int saves = data['saves'] ?? 0;
+    final String likeCount = likes.toString();
+    final String saveCount = saves.toString();
+    final String commentCount = (data['commentCount'] ?? 0).toString();
+
     final List<dynamic> likedBy = data['likedBy'] ?? [];
     final List<dynamic> savedBy = data['savedBy'] ?? [];
-
-    final String likeCount = likedBy.length.toString();
-    final String saveCount = savedBy.length.toString();
-    final String commentCount = (data['commentCount'] ?? 0).toString();
 
     final bool isLiked =
         _currentUserId != null && likedBy.contains(_currentUserId);
