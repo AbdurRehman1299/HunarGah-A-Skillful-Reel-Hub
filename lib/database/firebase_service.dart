@@ -262,6 +262,34 @@ class FirebaseService {
     }
   }
 
+  // Fetch user's followers to share
+  Stream<QuerySnapshot> getFollowersStream() {
+    return _firestore
+        .collection('users')
+        .doc(currentUserId)
+        .collection('followers')
+        .snapshots();
+  }
+
+  // Send link to specific user
+  Future<void> sendVideoToUser(
+    String toUserId,
+    String videoUrl,
+    String videoTitle,
+  ) async {
+    await _firestore
+        .collection('users')
+        .doc(toUserId)
+        .collection('messages')
+        .add({
+          'fromUserId': currentUserId,
+          'videoUrl': videoUrl,
+          'videoTitle': videoTitle,
+          'type': 'video_share',
+          'timestamp': FieldValue.serverTimestamp(),
+        });
+  }
+
   // Explore Screen Section
   Stream<QuerySnapshot> getUstadsStream() {
     return _firestore

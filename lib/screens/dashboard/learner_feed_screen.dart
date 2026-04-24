@@ -1,7 +1,9 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:hunargah/database/firebase_service.dart';
 import 'package:hunargah/screens/utils/route_observer.dart';
+import 'package:share_plus/share_plus.dart';
 import 'package:video_player/video_player.dart';
 import 'package:visibility_detector/visibility_detector.dart';
 
@@ -545,6 +547,238 @@ class _VideoFeedItemState extends State<VideoFeedItem> with RouteAware {
     }
   }
 
+  void _showShareOptions() async {
+    _videoPlayerController.pause();
+    final themeColor = Theme.of(context).primaryColor;
+    final String videoUrl = widget.videoData['videoUrl'] ?? '';
+    final String videoTitle = widget.videoData['title'] ?? 'Check this out!';
+
+    await showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) => SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 16),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: Colors.black26,
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+
+              const SizedBox(height: 16),
+
+              const Text(
+                'Share Video',
+                style: TextStyle(
+                  color: Colors.black,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 16,
+                ),
+              ),
+
+              const SizedBox(height: 20),
+
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  _buildShareOption(
+                    icon: Icons.share,
+                    label: 'Share',
+                    color: themeColor,
+                    onTap: () async {
+                      Navigator.pop(context);
+                      await SharePlus.instance.share(
+                        ShareParams(
+                          text: '$videoTitle\n$videoUrl',
+                          subject: videoTitle,
+                        ),
+                      );
+                    },
+                  ),
+
+                  _buildShareOption(
+                    icon: Icons.link,
+                    label: 'Copy Link',
+                    color: Colors.blue,
+                    onTap: () async {
+                      Navigator.pop(context);
+                      await Clipboard.setData(ClipboardData(text: videoUrl));
+                      if (context.mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: const Text('Link copied to clipboard!'),
+                            backgroundColor: themeColor,
+                            behavior: SnackBarBehavior.floating,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                          ),
+                        );
+                      }
+                    },
+                  ),
+
+                  _buildShareOption(
+                    icon: Icons.people,
+                    label: 'Send To',
+                    color: Colors.purple,
+                    onTap: () {
+                      Navigator.pop(context);
+                      _showSendToFollower(videoUrl, videoTitle);
+                    },
+                  ),
+                ],
+              ),
+
+              const SizedBox(height: 8),
+            ],
+          ),
+        ),
+      ),
+    );
+    if (mounted) _updatePlayback();
+  }
+
+  void _showSendToFollower(String videoUrl, String videoTitle) async {
+    _videoPlayerController.pause();
+    final themeColor = Theme.of(context).primaryColor;
+
+    await showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.white,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) {
+        return SizedBox(
+          height: MediaQuery.of(context).size.height * 0.5,
+          child: Column(
+            children: [
+              const SizedBox(height: 8),
+
+              Container(
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: Colors.black26,
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+
+              const Padding(
+                padding: EdgeInsets.all(12.0),
+                child: Text(
+                  'Send to',
+                  style: TextStyle(
+                    color: Colors.black,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 16,
+                  ),
+                ),
+              ),
+
+              const Divider(color: Colors.black12),
+
+              // -- Followers List from Firestore --
+              Expanded(
+                child: StreamBuilder<QuerySnapshot>(
+                  stream: FirebaseService().getFollowersStream(),
+                  builder: (context, snapshot) {
+                    if (!snapshot.hasData) {
+                      return Center(
+                        child: CircularProgressIndicator(color: themeColor),
+                      );
+                    }
+
+                    final followers = snapshot.data!.docs;
+
+                    if (followers.isEmpty) {
+                      return Center(
+                        child: Text(
+                          'No followers yet.',
+                          style: TextStyle(color: Colors.black54),
+                        ),
+                      );
+                    }
+
+                    return ListView.builder(
+                      itemCount: followers.length,
+                      itemBuilder: (context, i) {
+                        final follower =
+                            followers[i].data() as Map<String, dynamic>;
+                        final followerId = followers[i].id;
+
+                        return ListTile(
+                          leading: CircleAvatar(
+                            backgroundImage: NetworkImage(
+                              follower['photoUrl'] ??
+                                  'https://i.pravatar.cc/150?img=$i',
+                            ),
+                          ),
+                          title: Text(
+                            follower['username'] ?? 'User',
+                            style: const TextStyle(color: Colors.black87),
+                          ),
+                          trailing: ElevatedButton(
+                            onPressed: () async {
+                              await FirebaseService().sendVideoToUser(
+                                followerId,
+                                videoUrl,
+                                videoTitle,
+                              );
+                              if (context.mounted) {
+                                Navigator.pop(context);
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Text(
+                                      'Sent to ${follower['username']}!',
+                                    ),
+                                    backgroundColor: themeColor,
+                                    behavior: SnackBarBehavior.floating,
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(10),
+                                    ),
+                                  ),
+                                );
+                              }
+                            },
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: themeColor,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(20),
+                              ),
+                            ),
+                            child: const Text(
+                              'Send',
+                              style: TextStyle(color: Colors.white),
+                            ),
+                          ),
+                        );
+                      },
+                    );
+                  },
+                ),
+              ),
+
+              const SizedBox(height: 16),
+            ],
+          ),
+        );
+      },
+    );
+    if (mounted) _updatePlayback();
+  }
+
   Future<void> _toggleLike() async {
     await FirebaseService().toggleLike(
       widget.videoId,
@@ -709,7 +943,7 @@ class _VideoFeedItemState extends State<VideoFeedItem> with RouteAware {
                   icon: Icons.reply,
                   label: 'Share',
                   isShare: true,
-                  onTap: () => {},
+                  onTap: () => _showShareOptions(),
                 ),
               ],
             ),
@@ -823,6 +1057,43 @@ class _VideoFeedItemState extends State<VideoFeedItem> with RouteAware {
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  // Reusable Widget: Share Option Tile
+  Widget _buildShareOption({
+    required IconData icon,
+    required String label,
+    required Color color,
+    required VoidCallback onTap,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Column(
+        children: [
+          Container(
+            width: 60,
+            height: 60,
+            decoration: BoxDecoration(
+              color: color.withValues(alpha: 0.1),
+              shape: BoxShape.circle,
+              border: Border.all(color: color.withValues(alpha: 0.3)),
+            ),
+            child: Icon(icon, color: color, size: 28),
+          ),
+
+          const SizedBox(height: 8),
+
+          Text(
+            label,
+            style: const TextStyle(
+              color: Colors.black87,
+              fontSize: 12,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+        ],
       ),
     );
   }
