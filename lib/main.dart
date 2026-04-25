@@ -1,6 +1,7 @@
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:hunargah/screens/utils/route_observer.dart';
+import 'package:hunargah/security/secure_storage.dart';
 import 'firebase_options.dart';
 import 'package:hunargah/screens/dashboard/main_dashboard.dart';
 import 'package:hunargah/screens/courses/course_playlist_screen.dart';
@@ -20,13 +21,21 @@ import 'package:hunargah/screens/privacy_terms/terms_and_conditions_screen.dart'
 import 'package:hunargah/screens/explore/ustad_profile_screen.dart';
 import 'package:hunargah/screens/courses/video_player_screen.dart';
 
+final ValueNotifier<ThemeMode> themeNotifier = ValueNotifier(ThemeMode.light);
+
 void main() async {
   // Ensure Flutter bindings are initialized before running the app
   WidgetsFlutterBinding.ensureInitialized();
-
-  runApp(const MainApp());
   // Initialize Firebase with platform-specific options
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+
+  String? savedTheme = await SecureStorage.getTheme();
+  if (savedTheme == 'dark') {
+    themeNotifier.value = ThemeMode.dark;
+  } else {
+    themeNotifier.value = ThemeMode.light;
+  }
+  runApp(const MainApp());
 }
 
 class MainApp extends StatelessWidget {
@@ -34,40 +43,54 @@ class MainApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'HunarGah',
-      debugShowCheckedModeBanner: false,
-      navigatorObservers: [routeObserver],
-      home: SplashScreen(),
+    return ValueListenableBuilder<ThemeMode>(
+      valueListenable: themeNotifier,
+      builder: (context, ThemeMode currentMode, child) {
+        return MaterialApp(
+          title: 'HunarGah',
+          debugShowCheckedModeBanner: false,
+          navigatorObservers: [routeObserver],
+          home: const SplashScreen(),
 
-      // Define the all routes
-      routes: {
-        '/login': (context) => const LoginScreen(),
-        '/signup': (context) => const SignupScreen(),
-        '/terms': (context) => const TermsAndConditionsScreen(),
-        '/privacy': (context) => const PrivacyPolicyScreen(),
-        '/onboarding': (context) => const OnboardingScreen(),
-        '/language': (context) => const LanguageSelectorScreen(),
-        '/skills': (context) => const SkillsInterestedScreen(),
-        '/profile-picture': (context) => const ProfilePictureScreen(),
-        '/dashboard': (context) => const MainDashboard(),
-        '/settings': (context) => const SettingsScreen(),
-        '/edit-profile': (context) => const EditProfileScreen(),
-        '/ustad-profile': (context) {
-          final args = ModalRoute.of(context)!.settings.arguments as String;
-          return UstadProfileScreen(ustadId: args);
-        },
-        '/course-playlist': (context) => const CoursePlaylistScreen(),
-        '/video-player': (context) => const VideoPlayerScreen(),
-        '/quiz': (context) => const QuizDialog(),
-        '/notification': (context) => const NotificationsScreen(),
-      },
+          themeMode: currentMode,
+        
+          // Define the all routes
+          routes: {
+            '/login': (context) => const LoginScreen(),
+            '/signup': (context) => const SignupScreen(),
+            '/terms': (context) => const TermsAndConditionsScreen(),
+            '/privacy': (context) => const PrivacyPolicyScreen(),
+            '/onboarding': (context) => const OnboardingScreen(),
+            '/language': (context) => const LanguageSelectorScreen(),
+            '/skills': (context) => const SkillsInterestedScreen(),
+            '/profile-picture': (context) => const ProfilePictureScreen(),
+            '/dashboard': (context) => const MainDashboard(),
+            '/settings': (context) => const SettingsScreen(),
+            '/edit-profile': (context) => const EditProfileScreen(),
+            '/ustad-profile': (context) {
+              final args = ModalRoute.of(context)!.settings.arguments as String;
+              return UstadProfileScreen(ustadId: args);
+            },
+            '/course-playlist': (context) => const CoursePlaylistScreen(),
+            '/video-player': (context) => const VideoPlayerScreen(),
+            '/quiz': (context) => const QuizDialog(),
+            '/notification': (context) => const NotificationsScreen(),
+          },
+        
+          // Set theme to declare color one time
+          theme: ThemeData(
+            primaryColor: const Color(0xFF00897B),
+            useMaterial3: true,
+            brightness: Brightness.light
+          ),
 
-      // Set theme to declare color one time
-      theme: ThemeData(
-        primaryColor: const Color(0xFF00897B),
-        useMaterial3: true,
-      ),
+          darkTheme: ThemeData(
+            primaryColor: const Color(0xFF00897B),
+            useMaterial3: true,
+            brightness: Brightness.dark
+          )
+        );
+      }
     );
   }
 }
