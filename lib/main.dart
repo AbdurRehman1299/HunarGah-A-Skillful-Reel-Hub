@@ -24,9 +24,9 @@ void main() async {
   // Ensure Flutter bindings are initialized before running the app
   WidgetsFlutterBinding.ensureInitialized();
 
+  runApp(const MainApp());
   // Initialize Firebase with platform-specific options
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
-  runApp(const MainApp());
 }
 
 class MainApp extends StatelessWidget {

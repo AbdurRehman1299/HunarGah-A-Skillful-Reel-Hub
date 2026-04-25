@@ -1,3 +1,4 @@
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:hunargah/database/firebase_service.dart';
 
@@ -17,7 +18,10 @@ class _SplashScreenState extends State<SplashScreen> {
 
   Future<void> _initializeApp() async {
     try {
-      await Future.delayed(const Duration(seconds: 2));
+      await Future.wait([
+        Future.delayed(const Duration(seconds: 2)),
+        Firebase.initializeApp().catchError((_) {}),
+      ]);
 
       int? step = await FirebaseService().getUserOnboardingSteps();
 
