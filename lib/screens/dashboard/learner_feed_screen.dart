@@ -779,12 +779,35 @@ class _VideoFeedItemState extends State<VideoFeedItem> with RouteAware {
     if (mounted) _updatePlayback();
   }
 
+  bool _isLikeProcessing = false;
+  bool _isSaveProcessing = false;
+
   Future<void> _toggleLike() async {
-    await FirebaseService().toggleLike(widget.videoId);
+    if (_isLikeProcessing) return;
+
+    setState(() {
+      _isLikeProcessing = true;
+    });
+
+    try {
+      await FirebaseService().toggleLike(widget.videoId);
+    } finally {
+      if (mounted) setState(() => _isLikeProcessing = false);
+    }
   }
 
   Future<void> _toggleSave() async {
-    await FirebaseService().toggleSave(widget.videoId);
+    if (_isSaveProcessing) return;
+
+    setState(() {
+      _isSaveProcessing = true;
+    });
+
+    try {
+      await FirebaseService().toggleSave(widget.videoId);
+    } finally {
+      if (mounted) setState(() => _isSaveProcessing = false);
+    }
   }
 
   @override
@@ -917,6 +940,7 @@ class _VideoFeedItemState extends State<VideoFeedItem> with RouteAware {
                   color: isLiked ? Colors.red : Colors.white,
                   label: likeCount,
                   onTap: _toggleLike,
+                  isProcessing: _isLikeProcessing,
                 ),
 
                 // -- Comment Button --
@@ -932,6 +956,7 @@ class _VideoFeedItemState extends State<VideoFeedItem> with RouteAware {
                   color: isSaved ? Colors.amber : Colors.white,
                   label: saveCount,
                   onTap: _toggleSave,
+                  isProcessing: _isSaveProcessing,
                 ),
 
                 // -- Share Button --
@@ -1028,11 +1053,12 @@ class _VideoFeedItemState extends State<VideoFeedItem> with RouteAware {
     required VoidCallback onTap,
     Color color = Colors.white,
     bool isShare = false,
+    bool isProcessing = false,
   }) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 16.0),
       child: GestureDetector(
-        onTap: onTap,
+        onTap: isProcessing ? null : onTap,
         child: Column(
           children: [
             Transform(

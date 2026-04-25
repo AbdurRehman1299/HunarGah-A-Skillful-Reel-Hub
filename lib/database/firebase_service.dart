@@ -252,20 +252,24 @@ class FirebaseService {
     if (currentUserId == null) return;
 
     final videoRef = _firestore.collection('videos').doc(videoId);
-    final doc = await videoRef.get();
-    final List likedBy = doc.data()?['likedBy'] ?? [];
 
-    if (likedBy.contains(currentUserId)) {
-      await videoRef.update({
-        'likedBy': FieldValue.arrayRemove([currentUserId]),
-        'likes': FieldValue.increment(-1),
-      });
-    } else {
-      await videoRef.update({
-        'likedBy': FieldValue.arrayUnion([currentUserId]),
-        'likes': FieldValue.increment(1),
-      });
-    }
+    return _firestore.runTransaction((transaction) async {
+      DocumentSnapshot snapshot = await transaction.get(videoRef);
+
+      List likedBy = List.from(snapshot.get('likedBy') ?? []);
+
+      if (likedBy.contains(currentUserId)) {
+        transaction.update(videoRef, {
+          'likedBy': FieldValue.arrayRemove([currentUserId]),
+          'likes': FieldValue.increment(-1),
+        });
+      } else {
+        transaction.update(videoRef, {
+          'likedBy': FieldValue.arrayUnion([currentUserId]),
+          'likes': FieldValue.increment(1),
+        });
+      }
+    });
   }
 
   // Add comment in video
@@ -303,20 +307,24 @@ class FirebaseService {
     if (currentUserId == null) return;
 
     final videoRef = _firestore.collection('videos').doc(videoId);
-    final doc = await videoRef.get();
-    final List savedBy = doc.data()?['savedBy'] ?? [];
 
-    if (savedBy.contains(currentUserId)) {
-      await videoRef.update({
-        'savedBy': FieldValue.arrayRemove([currentUserId]),
-        'saves': FieldValue.increment(-1),
-      });
-    } else {
-      await videoRef.update({
-        'savedBy': FieldValue.arrayUnion([currentUserId]),
-        'saves': FieldValue.increment(1),
-      });
-    }
+    return _firestore.runTransaction((transaction) async {
+      DocumentSnapshot snapshot = await transaction.get(videoRef);
+
+      List savedBy = List.from(snapshot.get('savedBy') ?? []);
+
+      if (savedBy.contains(currentUserId)) {
+        transaction.update(videoRef, {
+          'savedBy': FieldValue.arrayRemove([currentUserId]),
+          'saves': FieldValue.increment(-1),
+        });
+      } else {
+        transaction.update(videoRef, {
+          'savedBy': FieldValue.arrayUnion([currentUserId]),
+          'saves': FieldValue.increment(1),
+        });
+      }
+    });
   }
 
   // Fetch user's followers to share

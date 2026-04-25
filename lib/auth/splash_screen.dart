@@ -20,7 +20,7 @@ class _SplashScreenState extends State<SplashScreen> {
     try {
       await Future.wait([
         Future.delayed(const Duration(seconds: 2)),
-        Firebase.initializeApp().catchError((_) {}),
+        Firebase.initializeApp().catchError((_) => Firebase.app()),
       ]);
 
       int? step = await FirebaseService().getUserOnboardingSteps();
