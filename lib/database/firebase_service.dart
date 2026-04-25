@@ -362,4 +362,17 @@ class FirebaseService {
         .where('role', isEqualTo: 'ustad')
         .snapshots();
   }
+
+  // -- User's Profile --
+  Future<DocumentSnapshot> getUserProfile(String userId) {
+    return _firestore.collection('users').doc(userId).get();
+  }
+
+  // Fetch videos of specific Ustad
+  Stream<QuerySnapshot> getVideosByUserId(String userId) {
+    return _firestore
+        .collection('videos')
+        .where('userId', isEqualTo: userId)
+        .snapshots();
+  }
 }

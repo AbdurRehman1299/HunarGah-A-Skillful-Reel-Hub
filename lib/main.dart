@@ -53,7 +53,10 @@ class MainApp extends StatelessWidget {
         '/dashboard': (context) => const MainDashboard(),
         '/settings': (context) => const SettingsScreen(),
         '/edit-profile': (context) => const EditProfileScreen(),
-        '/ustad-profile': (context) => const UstadProfileScreen(),
+        '/ustad-profile': (context) {
+          final args = ModalRoute.of(context)!.settings.arguments as String;
+          return UstadProfileScreen(ustadId: args);
+        },
         '/course-playlist': (context) => const CoursePlaylistScreen(),
         '/video-player': (context) => const VideoPlayerScreen(),
         '/quiz': (context) => const QuizDialog(),

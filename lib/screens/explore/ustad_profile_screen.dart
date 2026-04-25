@@ -1,8 +1,14 @@
+import 'dart:convert';
+
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:hunargah/components/app_bar.dart';
+import 'package:hunargah/database/firebase_service.dart';
 
 class UstadProfileScreen extends StatefulWidget {
-  const UstadProfileScreen({super.key});
+  final String ustadId;
+
+  const UstadProfileScreen({super.key, required this.ustadId});
 
   @override
   State<UstadProfileScreen> createState() => _UstadProfileScreenState();
@@ -13,103 +19,142 @@ class _UstadProfileScreenState extends State<UstadProfileScreen> {
   Widget build(BuildContext context) {
     final themeColor = Theme.of(context).primaryColor;
 
-    return Scaffold(
-      backgroundColor: Colors.white,
-      appBar: CustomAppBar(
-        title: 'Ustad Profile',
-        leading: IconButton(
-          onPressed: () => Navigator.pop(context),
-          icon: Icon(Icons.arrow_back_ios_new, color: Colors.black, size: 20),
-        ),
-        actions: [
-          IconButton(
-            onPressed: () {},
-            icon: Icon(Icons.share_outlined, color: Colors.black54),
-          ),
-          IconButton(
-            onPressed: () {},
-            icon: Icon(Icons.more_vert, color: Colors.black54),
-          ),
-        ],
-      ),
+    return FutureBuilder<DocumentSnapshot>(
+      future: FirebaseService().getUserProfile(widget.ustadId),
+      builder: (context, profileSnapshot) {
+        if (profileSnapshot.connectionState == ConnectionState.waiting) {
+          return const Scaffold(
+            body: Center(child: CircularProgressIndicator()),
+          );
+        }
 
-      body: SingleChildScrollView(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // -- Header Section (Cover Image + Profile Picture + Follow Button) --
-            headerSection(themeColor),
+        if (!profileSnapshot.hasData || !profileSnapshot.data!.exists) {
+          return const Scaffold(body: Center(child: Text("Ustad not found")));
+        }
 
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 24),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // -- Ustad Info --
-                  ustadInfo(themeColor),
+        final ustadData = profileSnapshot.data!.data() as Map<String, dynamic>;
 
-                  const SizedBox(height: 4),
-
-                  Text(
-                    'Expert AC Technician',
-                    style: TextStyle(fontSize: 14, color: Colors.grey[600]),
-                  ),
-
-                  const SizedBox(height: 16),
-
-                  // Bio Description
-                  Text(
-                    'Helping over 50,000 learners master the art of woodworking and furniture design with 20+ years of industrial experience.',
-                    style: TextStyle(
-                      fontSize: 13,
-                      color: Colors.grey[700],
-                      height: 1.5,
-                    ),
-                  ),
-
-                  const SizedBox(height: 16),
-
-                  // -- TAGS --
-                  tagSection(),
-
-                  const SizedBox(height: 24),
-
-                  // -- Stats Box --
-                  statsBox(),
-
-                  const SizedBox(height: 32),
-
-                  // -- Published Lesson --
-                  publishedLesson(themeColor),
-
-                  const SizedBox(height: 16),
-
-                  // -- Video Grid --
-                  videoGrid(),
-
-                  const SizedBox(height: 32),
-                ],
+        return Scaffold(
+          backgroundColor: Colors.white,
+          appBar: CustomAppBar(
+            title: 'Ustad Profile',
+            leading: IconButton(
+              onPressed: () => Navigator.pop(context),
+              icon: Icon(
+                Icons.arrow_back_ios_new,
+                color: Colors.black,
+                size: 20,
               ),
             ),
-          ],
-        ),
-      ),
+            actions: [
+              IconButton(
+                onPressed: () {},
+                icon: Icon(Icons.share_outlined, color: Colors.black54),
+              ),
+              IconButton(
+                onPressed: () {},
+                icon: Icon(Icons.more_vert, color: Colors.black54),
+              ),
+            ],
+          ),
+
+          body: SingleChildScrollView(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // -- Header Section (Cover Image + Profile Picture + Follow Button) --
+                headerSection(themeColor, ustadData),
+
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 24),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // -- Ustad Info --
+                      ustadInfo(
+                        themeColor,
+                        ustadData['username'] ?? 'HunarGah User',
+                      ),
+
+                      const SizedBox(height: 4),
+
+                      Text(
+                        ustadData['headline'] ?? 'Expert Professional',
+                        style: TextStyle(fontSize: 14, color: Colors.grey[600]),
+                      ),
+
+                      const SizedBox(height: 16),
+
+                      // Bio Description
+                      Text(
+                        ustadData['bio'] ?? 'No bio available.',
+                        style: TextStyle(
+                          fontSize: 13,
+                          color: Colors.grey[700],
+                          height: 1.5,
+                        ),
+                      ),
+
+                      const SizedBox(height: 16),
+
+                      // -- TAGS --
+                      tagSection(ustadData['tags'] as List? ?? []),
+
+                      const SizedBox(height: 24),
+
+                      // -- Stats Box --
+                      statsBox(ustadData),
+
+                      const SizedBox(height: 32),
+
+                      // -- Published Lesson --
+                      publishedLesson(themeColor),
+
+                      const SizedBox(height: 16),
+
+                      // -- Video Grid --
+                      videoGrid(),
+
+                      const SizedBox(height: 32),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
     );
   }
 
-  GridView videoGrid() {
-    return GridView.builder(
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 3,
-        crossAxisSpacing: 8,
-        mainAxisSpacing: 8,
-        childAspectRatio: 0.85, // Adjusts height vs width of thumbnails
-      ),
-      itemCount: 9,
-      itemBuilder: (context, index) {
-        return _buildVideoThumbnail(context);
+  Widget videoGrid() {
+    return StreamBuilder<QuerySnapshot>(
+      stream: FirebaseService().getVideosByUserId(widget.ustadId),
+      builder: (context, snapshot) {
+        if (!snapshot.hasData) {
+          return const Center(child: CircularProgressIndicator());
+        }
+
+        final docs = snapshot.data!.docs;
+        if (docs.isEmpty) {
+          return const Center(child: Text("No videos posted yet."));
+        }
+
+        return GridView.builder(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: 3,
+            crossAxisSpacing: 8,
+            mainAxisSpacing: 8,
+            childAspectRatio: 0.85, // Adjusts height vs width of thumbnails
+          ),
+          itemCount: docs.length,
+          itemBuilder: (context, index) {
+            final video = docs[index].data() as Map<String, dynamic>;
+            return _buildVideoThumbnail(context, video);
+          },
+        );
       },
     );
   }
@@ -134,7 +179,7 @@ class _UstadProfileScreenState extends State<UstadProfileScreen> {
     );
   }
 
-  Container statsBox() {
+  Container statsBox(Map<String, dynamic> data) {
     return Container(
       decoration: BoxDecoration(
         border: Border.all(color: Colors.grey[300]!),
@@ -145,34 +190,30 @@ class _UstadProfileScreenState extends State<UstadProfileScreen> {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           children: [
-            _buildStatItem('54K', 'LEARNER'),
+            _buildStatItem('${data['followerCount'] ?? 0}', 'LEARNER'),
             VerticalDivider(color: Colors.grey[300], thickness: 1, width: 1),
-            _buildStatItem('128', 'LESSONS'),
+            _buildStatItem('${data['videoCount'] ?? 0}', 'LESSONS'),
             VerticalDivider(color: Colors.grey[300], thickness: 1, width: 1),
-            _buildStatItem('4.9', 'RATING'),
+            _buildStatItem('${data['rating'] ?? '5.0'}', 'RATING'),
           ],
         ),
       ),
     );
   }
 
-  Wrap tagSection() {
+  Wrap tagSection(List tags) {
     return Wrap(
       spacing: 8,
       runSpacing: 8,
-      children: [
-        _buildTag('Carpentry'),
-        _buildTag('Design'),
-        _buildTag('Home Decor'),
-      ],
+      children: tags.map((tag) => _buildTag(tag.toString())).toList(),
     );
   }
 
-  Row ustadInfo(Color themeColor) {
+  Row ustadInfo(Color themeColor, String name) {
     return Row(
       children: [
-        const Text(
-          'Ustad Ali Raza',
+        Text(
+          name,
           style: TextStyle(
             fontSize: 20,
             fontWeight: FontWeight.bold,
@@ -187,16 +228,16 @@ class _UstadProfileScreenState extends State<UstadProfileScreen> {
     );
   }
 
-  SizedBox headerSection(Color themeColor) {
+  SizedBox headerSection(Color themeColor, Map<String, dynamic> data) {
     return SizedBox(
       height: 210,
       child: Stack(
         children: [
           // Cover Image
-          coverImage(),
+          coverImage(data),
 
           // Profile Picture
-          profilePicture(),
+          profilePicture(data),
 
           // Follow Button
           followButton(themeColor),
@@ -230,29 +271,56 @@ class _UstadProfileScreenState extends State<UstadProfileScreen> {
     );
   }
 
-  Positioned profilePicture() {
+  Positioned profilePicture(Map<String, dynamic> data) {
+    String? imageString = data['profileImageUrl'];
+    ImageProvider? imageProvider;
+
+    if (imageString != null && imageString.isNotEmpty) {
+      if (imageString.startsWith('http')) {
+        // 1. If it's a normal web URL
+        imageProvider = NetworkImage(imageString);
+      } else {
+        // 2. If it's a Base64 string (from your database)
+        try {
+          final String cleanBase64 = imageString.contains(',')
+              ? imageString.split(',').last
+              : imageString;
+          imageProvider = MemoryImage(base64Decode(cleanBase64));
+        } catch (e) {
+          debugPrint('Error decoding base64 image: $e');
+        }
+      }
+    }
+
+    imageProvider ??= const NetworkImage('https://i.pravatar.cc/150?img=11');
+
     return Positioned(
-      top: 100, // Pushes it down to overlap the bottom edge of cover image
+      top: 100,
       left: 24,
       child: Container(
         padding: const EdgeInsets.all(4),
-        decoration: BoxDecoration(color: Colors.white, shape: BoxShape.circle),
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          shape: BoxShape.circle,
+        ),
         child: CircleAvatar(
           radius: 40,
-          backgroundImage: NetworkImage('https://i.pravatar.cc/150?img=11'),
+          backgroundColor: Colors.grey,
+          backgroundImage: imageProvider,
         ),
       ),
     );
   }
 
-  Container coverImage() {
+  Container coverImage(Map<String, dynamic> data) {
     return Container(
       height: 140,
       width: double.infinity,
       decoration: BoxDecoration(
         image: DecorationImage(
           image: NetworkImage(
-            'https://images.unsplash.com/photo-1509391366360-2e959784a276?auto=format&fit=crop&w=800&q=80',
+            data['coverUrl'] ??
+                'https://images.unsplash.com/photo-1509391366360-2e959784a276?auto=format&fit=crop&w=800&q=80',
           ),
           fit: BoxFit.cover,
         ),
@@ -314,15 +382,20 @@ class _UstadProfileScreenState extends State<UstadProfileScreen> {
   }
 
   // Reusable Widget: Video Thumbnail Card
-  Widget _buildVideoThumbnail(BuildContext context) {
+  Widget _buildVideoThumbnail(
+    BuildContext context,
+    Map<String, dynamic> video,
+  ) {
     return GestureDetector(
-      onTap: () => Navigator.pushNamed(context, '/course-playlist'),
+      onTap: () =>
+          Navigator.pushNamed(context, '/course-playlist', arguments: video),
       child: Container(
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(8),
-          image: const DecorationImage(
+          image: DecorationImage(
             image: NetworkImage(
-              'https://images.unsplash.com/photo-1509391366360-2e959784a276?auto=format&fit=crop&w=300&q=80',
+              video['thumbnailUrl'] ??
+                  'https://images.unsplash.com/photo-1509391366360-2e959784a276?auto=format&fit=crop&w=300&q=80',
             ),
             fit: BoxFit.cover,
           ),
