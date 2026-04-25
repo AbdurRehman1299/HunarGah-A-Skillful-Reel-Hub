@@ -251,7 +251,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
     }
     final themeColor = Theme.of(context).primaryColor;
 
-    final String name = _userData?['fullName'] ?? 'HunarGah User';
+    final String name = _userData?['username'] ?? 'HunarGah User';
     final String username = _userData?['username'] ?? 'user';
     final String bio = _userData?['bio'] ?? 'No bio yet. Tap edit to add one!';
     final String? base64Image = _userData?['profileImageUrl'];
@@ -259,7 +259,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: CustomAppBar(
-        title: '@$username',
+        title: 'Profile',
         actions: [
           IconButton(
             icon: const Icon(Icons.settings_outlined, color: Colors.black87),

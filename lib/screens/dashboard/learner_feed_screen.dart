@@ -382,6 +382,14 @@ class _VideoFeedItemState extends State<VideoFeedItem> with RouteAware {
     if (oldWidget.isTabActive != widget.isTabActive) {
       _updatePlayback();
     }
+    if (oldWidget.videoData != widget.videoData) {
+      setState(() {
+        _localLikeState = null;
+        _localSaveState = null;
+        _localLikeCount = null;
+        _localSaveCount = null;
+      });
+    }
   }
 
   @override
@@ -779,34 +787,64 @@ class _VideoFeedItemState extends State<VideoFeedItem> with RouteAware {
     if (mounted) _updatePlayback();
   }
 
-  bool _isLikeProcessing = false;
-  bool _isSaveProcessing = false;
+  bool? _localLikeState;
+  bool? _localSaveState;
+  int? _localLikeCount;
+  int? _localSaveCount;
 
   Future<void> _toggleLike() async {
-    if (_isLikeProcessing) return;
+    final currentLikedBy = widget.videoData['likedBy'] as List? ?? [];
+    final currentLike = widget.videoData['likes'] ?? 0;
+    final isCurrentlyLiked =
+        _localLikeState ?? currentLikedBy.contains(_currentUserId);
 
     setState(() {
-      _isLikeProcessing = true;
+      _localLikeState = !isCurrentlyLiked;
+      _localLikeCount = isCurrentlyLiked
+          ? (_localLikeCount ?? currentLike) - 1
+          : (_localLikeCount ?? currentLike) + 1;
     });
 
     try {
       await FirebaseService().toggleLike(widget.videoId);
-    } finally {
-      if (mounted) setState(() => _isLikeProcessing = false);
+    } catch (e) {
+      setState(() {
+        _localLikeState = isCurrentlyLiked;
+        _localLikeCount = currentLike;
+      });
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("Action failed. Check connection.")),
+        );
+      }
     }
   }
 
   Future<void> _toggleSave() async {
-    if (_isSaveProcessing) return;
+    final currentSavedBy = widget.videoData['savedBy'] as List? ?? [];
+    final currentSave = widget.videoData['saves'] ?? 0;
+    final isCurrentlySaved =
+        _localSaveState ?? currentSavedBy.contains(_currentUserId);
 
     setState(() {
-      _isSaveProcessing = true;
+      _localSaveState = !isCurrentlySaved;
+      _localSaveCount = isCurrentlySaved
+          ? (_localSaveCount ?? currentSave) - 1
+          : (_localSaveCount ?? currentSave) + 1;
     });
 
     try {
       await FirebaseService().toggleSave(widget.videoId);
-    } finally {
-      if (mounted) setState(() => _isSaveProcessing = false);
+    } catch (e) {
+      setState(() {
+        _localSaveState = isCurrentlySaved;
+        _localSaveCount = currentSave;
+      });
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("Action failed. Check connection.")),
+        );
+      }
     }
   }
 
@@ -815,19 +853,22 @@ class _VideoFeedItemState extends State<VideoFeedItem> with RouteAware {
     final themeColor = Theme.of(context).primaryColor;
 
     final data = widget.videoData;
-
-    final int likes = data['likes'] ?? 0;
-    final int saves = data['saves'] ?? 0;
-    final String likeCount = likes.toString();
-    final String saveCount = saves.toString();
     final String commentCount = (data['commentCount'] ?? 0).toString();
 
     final List<dynamic> likedBy = data['likedBy'] ?? [];
     final List<dynamic> savedBy = data['savedBy'] ?? [];
 
     final bool isLiked =
-        _currentUserId != null && likedBy.contains(_currentUserId);
-    final isSaved = _currentUserId != null && savedBy.contains(_currentUserId);
+        _localLikeState ??
+        (_currentUserId != null && likedBy.contains(_currentUserId));
+    final String likeCount = (_localLikeCount ?? (data['likes'] ?? 0))
+        .toString();
+
+    final bool isSaved =
+        _localSaveState ??
+        (_currentUserId != null && savedBy.contains(_currentUserId));
+    final String saveCount = (_localSaveCount ?? (data['saves'] ?? 0))
+        .toString();
 
     return VisibilityDetector(
       key: Key(widget.videoId),
@@ -940,7 +981,6 @@ class _VideoFeedItemState extends State<VideoFeedItem> with RouteAware {
                   color: isLiked ? Colors.red : Colors.white,
                   label: likeCount,
                   onTap: _toggleLike,
-                  isProcessing: _isLikeProcessing,
                 ),
 
                 // -- Comment Button --
@@ -956,7 +996,6 @@ class _VideoFeedItemState extends State<VideoFeedItem> with RouteAware {
                   color: isSaved ? Colors.amber : Colors.white,
                   label: saveCount,
                   onTap: _toggleSave,
-                  isProcessing: _isSaveProcessing,
                 ),
 
                 // -- Share Button --
@@ -1053,12 +1092,11 @@ class _VideoFeedItemState extends State<VideoFeedItem> with RouteAware {
     required VoidCallback onTap,
     Color color = Colors.white,
     bool isShare = false,
-    bool isProcessing = false,
   }) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 16.0),
       child: GestureDetector(
-        onTap: isProcessing ? null : onTap,
+        onTap: onTap,
         child: Column(
           children: [
             Transform(

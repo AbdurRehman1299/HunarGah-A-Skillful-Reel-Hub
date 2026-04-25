@@ -135,9 +135,6 @@ class _ExploreScreenState extends State<ExploreScreen> {
                       rating: (data['rating'] ?? 0.0).toString(),
                       reviews: (data['reviewsCount'] ?? 0.0).toString(),
                       imageUrl: data['profileImageUrl'],
-                      statusColor: (data['isOnline'] == true)
-                          ? Colors.green
-                          : Colors.red,
                     );
                   },
                 );
@@ -286,7 +283,6 @@ class _ExploreScreenState extends State<ExploreScreen> {
     required String skill,
     required String rating,
     required String reviews,
-    required Color statusColor,
     String? imageUrl,
   }) {
     final themeColor = Theme.of(context).primaryColor;
@@ -309,7 +305,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
       child: Row(
         children: [
           // -- Avatar with status indicator --
-          profileAvatar(statusColor, imageUrl),
+          profileAvatar(imageUrl),
 
           const SizedBox(width: 16),
 
@@ -410,7 +406,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
     );
   }
 
-  Stack profileAvatar(Color statusColor, String? base64String) {
+  Stack profileAvatar(String? base64String) {
     ImageProvider? imageProvider;
 
     if (base64String != null && base64String.isNotEmpty) {
@@ -435,19 +431,6 @@ class _ExploreScreenState extends State<ExploreScreen> {
           child: imageProvider == null
               ? const Icon(Icons.person, color: Colors.grey)
               : null,
-        ),
-        Positioned(
-          bottom: 0,
-          right: 0,
-          child: Container(
-            width: 14,
-            height: 14,
-            decoration: BoxDecoration(
-              color: statusColor,
-              shape: BoxShape.circle,
-              border: Border.all(color: Colors.white, width: 2),
-            ),
-          ),
         ),
       ],
     );
