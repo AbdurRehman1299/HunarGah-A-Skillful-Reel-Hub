@@ -15,7 +15,7 @@ class _CategoryScreenState extends State<CategoryScreen> {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: isDark ? Colors.grey[900] : Colors.white,
       appBar: CustomAppBar(
         title: 'Categories',
         actions: [
@@ -37,7 +37,7 @@ class _CategoryScreenState extends State<CategoryScreen> {
             const SizedBox(height: 16),
 
             // -- Search Bar --
-            searchBar(),
+            searchBar(isDark),
 
             const SizedBox(height: 24),
 
@@ -57,7 +57,7 @@ class _CategoryScreenState extends State<CategoryScreen> {
             const SizedBox(height: 16),
 
             // -- Categories Grid --
-            categoriesCards(),
+            categoriesCards(isDark),
 
             const SizedBox(height: 32),
           ],
@@ -66,7 +66,7 @@ class _CategoryScreenState extends State<CategoryScreen> {
     );
   }
 
-  GridView categoriesCards() {
+  GridView categoriesCards(bool isDark) {
     return GridView.count(
       shrinkWrap: true, // Lets GridView live inside SingleChildScrollView
       physics:
@@ -81,36 +81,42 @@ class _CategoryScreenState extends State<CategoryScreen> {
           '24 COURSES',
           Icons.bolt,
           const Color(0xFFE0F2F1),
+          isDark,
         ),
         _buildCategoryCard(
           'Welder',
           '12 COURSES',
           Icons.local_fire_department,
           const Color(0xFFF1F8E9),
+          isDark,
         ),
         _buildCategoryCard(
           'Tailor',
           '19 COURSES',
           Icons.content_cut,
           const Color(0xFFE0F7FA),
+          isDark,
         ),
         _buildCategoryCard(
           'Plumber',
           '15 COURSES',
           Icons.water_drop,
           const Color(0xFFF1F8E9),
+          isDark,
         ),
         _buildCategoryCard(
           'AC Mechanic',
           '9 COURSES',
           Icons.air,
           const Color(0xFFFFF8E1),
+          isDark,
         ),
         _buildCategoryCard(
           'Carpentry',
           '14 COURSES',
           Icons.handyman,
           const Color(0xFFE0F7FA),
+          isDark,
         ),
       ],
     );
@@ -262,18 +268,18 @@ class _CategoryScreenState extends State<CategoryScreen> {
     );
   }
 
-  Container searchBar() {
+  Container searchBar(bool isDark) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16),
       decoration: BoxDecoration(
-        color: Colors.grey[100],
+        color: isDark ? Colors.grey[800] : Colors.grey[100],
         borderRadius: BorderRadius.circular(12),
       ),
       child: TextField(
         decoration: InputDecoration(
-          icon: Icon(Icons.search, color: Colors.grey[500]),
+          icon: Icon(Icons.search, color: isDark ? Colors.grey[100] : Colors.grey[500]),
           hintText: 'Search for skills or Ustads',
-          hintStyle: TextStyle(color: Colors.grey[500], fontSize: 14),
+          hintStyle: TextStyle(color: isDark ? Colors.grey[100] : Colors.grey[500], fontSize: 14),
           border: InputBorder.none,
         ),
       ),
@@ -286,14 +292,15 @@ class _CategoryScreenState extends State<CategoryScreen> {
     String subtitle,
     IconData icon,
     Color bgColor,
+      bool isDark
   ) {
     final themeColor = Theme.of(context).primaryColor;
 
     return Container(
       decoration: BoxDecoration(
-        color: bgColor,
+        color: bgColor.withValues(alpha: isDark ? 0.95 : 1),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.black.withValues(alpha: 0.03)),
+        border: Border.all(color: Colors.black.withValues(alpha: isDark ? 0.1 : 0.03)),
       ),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -307,7 +314,7 @@ class _CategoryScreenState extends State<CategoryScreen> {
               shape: BoxShape.circle,
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.05),
+                  color: Colors.black.withValues(alpha: isDark ? 0.1 : 0.05),
                   blurRadius: 10,
                   offset: const Offset(0, 4),
                 ),
