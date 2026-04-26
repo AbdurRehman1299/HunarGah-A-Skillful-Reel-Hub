@@ -1,5 +1,7 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:hunargah/components/app_bar.dart';
+import 'package:hunargah/database/firebase_service.dart';
 
 class NotificationsScreen extends StatefulWidget {
   const NotificationsScreen({super.key});
@@ -11,21 +13,36 @@ class NotificationsScreen extends StatefulWidget {
 class _NotificationsScreenState extends State<NotificationsScreen> {
   String _selectedFilter = 'All';
 
+  String _timeAgo(Timestamp? timestamp) {
+    if (timestamp == null) return 'JUST NOW';
+
+    final duration = DateTime.now().difference(timestamp.toDate());
+    if (duration.inDays > 365) return "${(duration.inDays / 365).floor()} YRS AGO";
+    if (duration.inDays > 30) return "${(duration.inDays / 30).floor()} MONTHS AGO";
+    if (duration.inDays > 0) return "${(duration.inDays)} DAYS AGO";
+    if (duration.inHours > 0) return "${(duration.inHours)} HRS AGO";
+    if (duration.inMinutes > 0) return "${(duration.inMinutes)} MINS AGO";
+    return 'JUST NOW';
+  }
+
   @override
   Widget build(BuildContext context) {
     final themeColor = Theme.of(context).primaryColor;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: isDark ? Colors.grey[900] : Colors.white,
       appBar: CustomAppBar(
         title: 'Notification',
         leading: IconButton(
           onPressed: () => Navigator.pop(context),
-          icon: Icon(Icons.arrow_back_ios_new, color: Colors.black, size: 20),
+          icon: Icon(Icons.arrow_back_ios_new, color: isDark ? Colors.white : Colors.black, size: 20),
         ),
         actions: [
           TextButton(
-            onPressed: () {},
+            onPressed: () async {
+              await FirebaseService().markAllNotificationsRead();
+            },
             child: Text(
               'Mark all read',
               style: TextStyle(
@@ -40,77 +57,94 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
         ],
       ),
 
-      body: SingleChildScrollView(
-        child: Column(
+      body: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            const SizedBox(height: 10,),
             // -- Filter Chips --
             filterChips(),
 
-            const SizedBox(height: 16),
-
-            // -- Recent Alerts Section --
-            recentAlertSection(),
-
             const SizedBox(height: 8),
 
-            _buildNotificationItem(
-              title: 'New Course: Solar Panel Installation',
-              description:
-                  'Ustad Ali just launched a complete guide on off-grid solar setup. Start now',
-              time: '2 MINS AGO',
-              isUnread: true,
+            Expanded(
+                child: StreamBuilder<QuerySnapshot>(
+                    stream: FirebaseService().getNotificationStream(),
+                    builder: (context, snapshot) {
+                      if (snapshot.connectionState == ConnectionState.waiting) {
+                        return Center(child: CircularProgressIndicator(color: themeColor,));
+                      }
+
+                      if (snapshot.hasError) {
+                        return Center(child: Text('Error loading notifications.', style: TextStyle(color: isDark ? Colors.white : Colors.black)));
+                      }
+
+                      if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+                        return footerSection(isDark);
+                      }
+
+                      var allDocs = snapshot.data!.docs;
+                      if (_selectedFilter != 'All') {
+                        allDocs = allDocs.where((doc) => doc['type'] == _selectedFilter).toList();
+                      }
+
+                      if (allDocs.isEmpty) {
+                        return Center(child: Text("No $_selectedFilter notifications", style: TextStyle(color: isDark ? Colors.grey[400] : Colors.grey[600])));
+                      }
+
+                      final unreadDocs = allDocs.where((doc) => doc['isRead'] == false).toList();
+                      final readDocs = allDocs.where((doc) => doc['isRead'] == true).toList();
+
+                      return SingleChildScrollView(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            // -- Recent Alerts Section --
+                            if (unreadDocs.isNotEmpty) ...[
+                              recentAlertSection(),
+                              const SizedBox(height: 8),
+                              ...unreadDocs.map((doc) => _buildNotificationFromDoc(doc, isDark, themeColor)),
+                            ],
+
+                            if (unreadDocs.isNotEmpty && readDocs.isNotEmpty)
+                              Divider(color: isDark ? Colors.grey[800] : Colors.grey[200], height: 32, thickness: 1),
+
+                            // -- Earlier Section --
+                            if (readDocs.isNotEmpty) ...[
+                              earlierSection(),
+                              const SizedBox(height: 8),
+                              ...readDocs.map((doc) => _buildNotificationFromDoc(doc, isDark, themeColor)),
+                            ],
+
+                            const SizedBox(height: 40),
+                            footerSection(isDark),
+                            const SizedBox(height: 40),
+                          ],
+                        ),
+                      );
+                    }
+                )
             ),
-            _buildNotificationItem(
-              title: 'New Course: Solar Panel Installation',
-              description:
-                  'Ustad Ali just launched a complete guide on off-grid solar setup. Start now',
-              time: '2 MINS AGO',
-              isUnread: true,
-            ),
-
-            Divider(color: Colors.grey[200], height: 32, thickness: 1),
-
-            // -- Earlier Section --
-            earlierSection(),
-
-            const SizedBox(height: 8),
-
-            _buildNotificationItem(
-              title: 'New Course: Solar Panel Installation',
-              description:
-                  'Ustad Ali just launched a complete guide on off-grid solar setup. Start now',
-              time: '2 MINS AGO',
-              isUnread: false,
-            ),
-            _buildNotificationItem(
-              title: 'New Course: Solar Panel Installation',
-              description:
-                  'Ustad Ali just launched a complete guide on off-grid solar setup. Start now',
-              time: '2 MINS AGO',
-              isUnread: false,
-            ),
-            _buildNotificationItem(
-              title: 'New Course: Solar Panel Installation',
-              description:
-                  'Ustad Ali just launched a complete guide on off-grid solar setup. Start now',
-              time: '2 MINS AGO',
-              isUnread: false,
-            ),
-
-            const SizedBox(height: 40),
-
-            // -- All Caught Up Footer --
-            footerSection(),
-
-            const SizedBox(height: 40),
           ],
         ),
-      ),
     );
   }
 
-  Center footerSection() {
+  // Reusable widget: Map Notification
+  Widget _buildNotificationFromDoc(QueryDocumentSnapshot doc, bool isDark, Color themeColor) {
+    final data = doc.data() as Map<String, dynamic>;
+
+    return _buildNotificationItem(
+      title: data['title'] ?? 'Notification',
+      description: data['description'] ?? '',
+      time: _timeAgo(data['timestamp'] as Timestamp?),
+      isUnread: !(data['isRead'] ?? true),
+      type: data['type'] ?? 'System',
+      isDark: isDark,
+      themeColor: themeColor,
+    );
+  }
+
+  Center footerSection(bool isDark) {
     return Center(
       child: Column(
         children: [
@@ -118,9 +152,9 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              border: Border.all(color: Colors.grey[300]!, width: 1.5),
+              border: Border.all(color: isDark ? Colors.grey[700]! : Colors.grey[300]!, width: 1.5),
             ),
-            child: Icon(Icons.check, color: Colors.grey[400], size: 24),
+            child: Icon(Icons.check, color: isDark ? Colors.grey[500] : Colors.grey[400], size: 24),
           ),
 
           const SizedBox(height: 16),
@@ -130,7 +164,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
             style: TextStyle(
               fontSize: 14,
               fontWeight: FontWeight.bold,
-              color: Colors.grey[400],
+              color: isDark ? Colors.grey[500] : Colors.grey[400],
             ),
           ),
 
@@ -138,7 +172,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
 
           Text(
             'Check back later for new updates',
-            style: TextStyle(fontSize: 11, color: Colors.grey[400]),
+            style: TextStyle(fontSize: 11, color: isDark ? Colors.grey[600] : Colors.grey[400]),
           ),
         ],
       ),
@@ -193,6 +227,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
   // Reusable Widget: Filter Chips
   Widget _buildFilterChip(String label) {
     final themeColor = Theme.of(context).primaryColor;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     bool isSelected = _selectedFilter == label;
 
     return GestureDetector(
@@ -205,13 +240,13 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
         margin: const EdgeInsets.only(right: 8.0),
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         decoration: BoxDecoration(
-          color: isSelected ? themeColor : Colors.grey[100],
+          color: isSelected ? themeColor : (isDark ? Colors.grey[800] : Colors.grey[100]),
           borderRadius: BorderRadius.circular(20),
         ),
         child: Text(
           label,
           style: TextStyle(
-            color: isSelected ? Colors.white : Colors.grey[700],
+            color: isSelected ? Colors.white : (isDark ? Colors.grey[300] : Colors.grey[700]),
             fontSize: 12,
             fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
           ),
@@ -226,22 +261,25 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
     required String description,
     required String time,
     required bool isUnread,
+    required String type,
+    required bool isDark,
+    required Color themeColor,
   }) {
     final themeColor = Theme.of(context).primaryColor;
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      color: isUnread ? themeColor.withValues(alpha: 0.02) : Colors.transparent,
+      color: isUnread ? themeColor.withValues(alpha: isDark ? 0.1 : 0.05) : Colors.transparent,
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // Icon Box
-          iconBox(themeColor),
+          iconBox(themeColor, type, isDark),
 
           const SizedBox(width: 12),
 
           // Text Content
-          notificationContent(title, isUnread, description, time),
+          notificationContent(title, isUnread, description, time, isDark),
         ],
       ),
     );
@@ -252,6 +290,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
     bool isUnread,
     String description,
     String time,
+      bool isDark,
   ) {
     return Expanded(
       child: Column(
@@ -263,10 +302,10 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
               Expanded(
                 child: Text(
                   title,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontWeight: FontWeight.bold,
                     fontSize: 13,
-                    color: Colors.black87,
+                    color: isDark ? Colors.white : Colors.black87,
                   ),
                 ),
               ),
@@ -291,7 +330,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
             description,
             style: TextStyle(
               fontSize: 12,
-              color: Colors.grey[600],
+              color: isDark ? Colors.grey[400] : Colors.grey[600],
               height: 1.4,
             ),
           ),
@@ -319,15 +358,20 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
     );
   }
 
-  Container iconBox(Color themeColor) {
+  Container iconBox(Color themeColor, String type, bool isDark) {
+    IconData iconData = Icons.notifications;
+    if (type == 'Courses') iconData = Icons.menu_book;
+    if (type == 'Job Alert') iconData = Icons.work_outline;
+    if (type == 'System') iconData = Icons.settings;
+
     return Container(
       width: 40,
       height: 40,
       decoration: BoxDecoration(
-        color: const Color(0xFFE0F2F1),
+        color: isDark ? themeColor.withValues(alpha: 0.2) : themeColor.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(8),
       ),
-      child: Icon(Icons.menu_book, color: themeColor, size: 20), // Course Icon
+      child: Icon(iconData, color: themeColor, size: 20), // Course Icon
     );
   }
 }

@@ -19,7 +19,7 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
     return AppBar(
       backgroundColor: isDark ? Colors.grey[900] : Colors.white,
       elevation: 0,
-      iconTheme: const IconThemeData(color: Colors.black),
+      iconTheme: IconThemeData(color: isDark ? Colors.white : Colors.black),
       bottom: PreferredSize(
         preferredSize: const Size.fromHeight(1.0),
         child: Container(color: Colors.grey[200], height: 1.0),

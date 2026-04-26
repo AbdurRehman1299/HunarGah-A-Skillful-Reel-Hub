@@ -375,4 +375,27 @@ class FirebaseService {
         .where('userId', isEqualTo: userId)
         .snapshots();
   }
+
+  // Fetch the notifications
+  Stream<QuerySnapshot> getNotificationStream() {
+    if (currentUserId == null) return const Stream.empty();
+
+    return _firestore.collection('users').doc(currentUserId).collection('notifications').orderBy('timestamp', descending: true).snapshots();
+  }
+
+  // Mark all notifications as read
+  Future<void> markAllNotificationsRead() async {
+    if (currentUserId == null) return;
+
+    final unreadSnapshots = await _firestore.collection('users').doc(currentUserId).collection('notifications').where('isRead', isEqualTo: false).get();
+
+    if (unreadSnapshots.docs.isEmpty) return;
+
+    WriteBatch batch = _firestore.batch();
+    for (var doc in unreadSnapshots.docs) {
+      batch.update(doc.reference, {'isRead': true});
+    }
+
+    await batch.commit();
+  }
 }

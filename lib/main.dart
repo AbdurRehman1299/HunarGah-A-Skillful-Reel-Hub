@@ -26,8 +26,6 @@ final ValueNotifier<ThemeMode> themeNotifier = ValueNotifier(ThemeMode.light);
 void main() async {
   // Ensure Flutter bindings are initialized before running the app
   WidgetsFlutterBinding.ensureInitialized();
-  // Initialize Firebase with platform-specific options
-  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
 
   String? savedTheme = await SecureStorage.getTheme();
   if (savedTheme == 'dark') {
@@ -36,6 +34,9 @@ void main() async {
     themeNotifier.value = ThemeMode.light;
   }
   runApp(const MainApp());
+
+  // Initialize Firebase with platform-specific options
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
 }
 
 class MainApp extends StatelessWidget {

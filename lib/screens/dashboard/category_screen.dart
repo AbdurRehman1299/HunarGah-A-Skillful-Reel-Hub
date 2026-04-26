@@ -12,6 +12,7 @@ class _CategoryScreenState extends State<CategoryScreen> {
   @override
   Widget build(BuildContext context) {
     final themeColor = Theme.of(context).primaryColor;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
       backgroundColor: Colors.white,
@@ -22,7 +23,7 @@ class _CategoryScreenState extends State<CategoryScreen> {
             onPressed: () {
               Navigator.pushNamed(context, '/notification');
             },
-            icon: const Icon(Icons.notifications_none, color: Colors.black),
+            icon: Icon(Icons.notifications_none, color: isDark ? Colors.white : Colors.black),
           ),
           const SizedBox(width: 8),
         ],
