@@ -94,32 +94,38 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                       final unreadDocs = allDocs.where((doc) => doc['isRead'] == false).toList();
                       final readDocs = allDocs.where((doc) => doc['isRead'] == true).toList();
 
-                      return SingleChildScrollView(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            // -- Recent Alerts Section --
-                            if (unreadDocs.isNotEmpty) ...[
-                              recentAlertSection(),
-                              const SizedBox(height: 8),
-                              ...unreadDocs.map((doc) => _buildNotificationFromDoc(doc, isDark, themeColor)),
+                      return RefreshIndicator(
+                        color: themeColor,
+                        backgroundColor: isDark ? Colors.grey[800] : Colors.white,
+                        onRefresh: () async {
+                          await Future.delayed(const Duration(seconds: 1));
+                        },
+                        child: ListView(
+                          physics: const AlwaysScrollableScrollPhysics(),
+                            padding: EdgeInsets.zero,
+                            children: [
+                              // -- Recent Alerts Section --
+                              if (unreadDocs.isNotEmpty) ...[
+                                recentAlertSection(),
+                                const SizedBox(height: 8),
+                                ...unreadDocs.map((doc) => _buildNotificationFromDoc(doc, isDark, themeColor)),
+                              ],
+                        
+                              if (unreadDocs.isNotEmpty && readDocs.isNotEmpty)
+                                Divider(color: isDark ? Colors.grey[800] : Colors.grey[200], height: 32, thickness: 1),
+                        
+                              // -- Earlier Section --
+                              if (readDocs.isNotEmpty) ...[
+                                earlierSection(),
+                                const SizedBox(height: 8),
+                                ...readDocs.map((doc) => _buildNotificationFromDoc(doc, isDark, themeColor)),
+                              ],
+                        
+                              const SizedBox(height: 40),
+                              footerSection(isDark),
+                              const SizedBox(height: 40),
                             ],
-
-                            if (unreadDocs.isNotEmpty && readDocs.isNotEmpty)
-                              Divider(color: isDark ? Colors.grey[800] : Colors.grey[200], height: 32, thickness: 1),
-
-                            // -- Earlier Section --
-                            if (readDocs.isNotEmpty) ...[
-                              earlierSection(),
-                              const SizedBox(height: 8),
-                              ...readDocs.map((doc) => _buildNotificationFromDoc(doc, isDark, themeColor)),
-                            ],
-
-                            const SizedBox(height: 40),
-                            footerSection(isDark),
-                            const SizedBox(height: 40),
-                          ],
-                        ),
+                          ),
                       );
                     }
                 )
