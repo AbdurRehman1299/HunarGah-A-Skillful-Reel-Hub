@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:hunargah/screens/model/video_model.dart';
-import 'package:hunargah/screens/viewmodels/feed_controller.dart';
+import 'package:hunargah/screens/viewmodels/feed_viewmodel.dart';
 import 'package:video_player/video_player.dart';
 import 'package:visibility_detector/visibility_detector.dart';
 

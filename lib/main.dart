@@ -7,7 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:hunargah/screens/utils/route_observer.dart';
 import 'package:hunargah/screens/view/main_dashboard.dart';
 import 'package:hunargah/screens/courses/course_playlist_screen.dart';
-import 'package:hunargah/screens/settings/edit_profile_screen.dart';
+import 'package:hunargah/screens/view/edit_profile_screen.dart';
 import 'package:hunargah/screens/onboarding/language_selector_screen.dart';
 import 'package:hunargah/auth/view/login/login_screen.dart';
 import 'package:hunargah/screens/settings/notifications_screen.dart';
@@ -71,7 +71,7 @@ class MainApp extends StatelessWidget {
           ),
           GetPage(name: '/dashboard', page: () => const MainDashboard()),
           GetPage(name: '/settings', page: () => const SettingsScreen()),
-          GetPage(name: '/edit-profile', page: () => const EditProfileScreen()),
+          GetPage(name: '/edit-profile', page: () => EditProfileScreen()),
           GetPage(
             name: '/ustad-profile',
             page: () => UstadProfileScreen(ustadId: Get.arguments as String),

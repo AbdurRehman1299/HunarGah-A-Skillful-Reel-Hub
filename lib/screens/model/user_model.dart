@@ -1,6 +1,7 @@
 class UserModel {
   final String uid;
   final String username;
+  final String city;
   final String email;
   final String bio;
   final String? profileImageUrl;
@@ -8,6 +9,7 @@ class UserModel {
   UserModel({
     required this.uid,
     required this.username,
+    required this.city,
     required this.email,
     this.bio = "No bio yet. Tap edit to add one!",
     this.profileImageUrl,
@@ -17,6 +19,7 @@ class UserModel {
     return UserModel(
       uid: id,
       username: map['username'] ?? 'HunarGah User',
+      city: map['city'],
       email: map['email'] ?? '',
       bio: map['bio'] ?? "No bio yet. Tap edit to add one!",
       profileImageUrl: map['profileImageUrl'],
@@ -26,6 +29,7 @@ class UserModel {
   Map<String, dynamic> toMap() {
     return {
       'username': username,
+      'city': city,
       'email': email,
       'bio': bio,
       'profileImageUrl': profileImageUrl,

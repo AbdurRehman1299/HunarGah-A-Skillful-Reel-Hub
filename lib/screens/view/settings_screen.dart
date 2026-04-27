@@ -2,7 +2,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:hunargah/components/app_bar.dart';
-import 'package:hunargah/screens/viewmodels/settings_controller.dart';
+import 'package:hunargah/screens/viewmodels/settings_viewmodel.dart';
 
 class SettingsScreen extends StatelessWidget {
   const SettingsScreen({super.key});
@@ -190,7 +190,8 @@ class SettingsScreen extends StatelessWidget {
             data['role']?.toString().toUpperCase() ?? 'LEARNER',
             style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold),
           ),
-          backgroundColor: themeColor.withValues(alpha: 0.1),
+          backgroundColor: themeColor.withValues(alpha: isDark ? 0.1 : 0.08),
+          side: BorderSide(color: themeColor),
           labelStyle: TextStyle(color: themeColor),
         ),
       ],

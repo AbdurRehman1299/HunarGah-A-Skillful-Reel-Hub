@@ -369,14 +369,15 @@ class FirebaseService {
   }
 
   // Save user's profile
-  Future<String?> updateProfileDetails(String fullName, String city, {String? profileImageUrl}) async {
+  Future<String?> updateProfileDetails(
+    String fullName,
+    String city, {
+    String? profileImageUrl,
+  }) async {
     try {
       User? user = _auth.currentUser;
       if (user != null) {
-        Map<String, dynamic> updateData = {
-          'username': fullName,
-          'city': city,
-        };
+        Map<String, dynamic> updateData = {'username': fullName, 'city': city};
 
         if (profileImageUrl != null) {
           updateData['profileImageUrl'] = profileImageUrl;
@@ -402,14 +403,24 @@ class FirebaseService {
   Stream<QuerySnapshot> getNotificationStream() {
     if (currentUserId == null) return const Stream.empty();
 
-    return _firestore.collection('users').doc(currentUserId).collection('notifications').orderBy('timestamp', descending: true).snapshots();
+    return _firestore
+        .collection('users')
+        .doc(currentUserId)
+        .collection('notifications')
+        .orderBy('timestamp', descending: true)
+        .snapshots();
   }
 
   // Mark all notifications as read
   Future<void> markAllNotificationsRead() async {
     if (currentUserId == null) return;
 
-    final unreadSnapshots = await _firestore.collection('users').doc(currentUserId).collection('notifications').where('isRead', isEqualTo: false).get();
+    final unreadSnapshots = await _firestore
+        .collection('users')
+        .doc(currentUserId)
+        .collection('notifications')
+        .where('isRead', isEqualTo: false)
+        .get();
 
     if (unreadSnapshots.docs.isEmpty) return;
 

@@ -4,7 +4,7 @@ import 'package:get/get.dart';
 import 'package:hunargah/bottom_sheets/filter_bottom_sheet.dart';
 import 'package:hunargah/components/app_bar.dart';
 import 'package:hunargah/screens/model/ustad_model.dart';
-import 'package:hunargah/screens/viewmodels/explore_controller.dart';
+import 'package:hunargah/screens/viewmodels/explore_viewmodel.dart';
 
 class ExploreScreen extends StatelessWidget {
   const ExploreScreen({super.key});

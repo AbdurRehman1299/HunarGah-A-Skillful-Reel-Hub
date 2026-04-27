@@ -6,7 +6,7 @@ import 'package:get/get.dart';
 import 'package:hunargah/components/app_bar.dart';
 import 'package:hunargah/database/firebase_service.dart';
 import 'package:hunargah/screens/model/user_model.dart';
-import 'package:hunargah/screens/viewmodels/user_profile_controller.dart';
+import 'package:hunargah/screens/viewmodels/user_profile_viewmodel.dart';
 import 'package:share_plus/share_plus.dart';
 
 class UserProfileScreen extends StatelessWidget {
@@ -28,7 +28,7 @@ class UserProfileScreen extends StatelessWidget {
               Icons.settings_outlined,
               color: isDark ? Colors.white : Colors.black87,
             ),
-            onPressed: () {},
+            onPressed: () => Get.toNamed('/settings'),
           ),
         ],
       ),
@@ -66,7 +66,6 @@ class UserProfileScreen extends StatelessWidget {
                 ),
                 const SizedBox(height: 16),
 
-                // Content Grid/List
                 _selectedTabContent(controller, user.uid, themeColor, isDark),
 
                 const SizedBox(height: 40),

@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:hunargah/components/app_bar.dart';
 import 'package:hunargah/screens/model/category_model.dart';
-import 'package:hunargah/screens/viewmodels/category_controller.dart'; // Adjust path
+import 'package:hunargah/screens/viewmodels/category_viewmodel.dart';
 
 class CategoryScreen extends StatelessWidget {
   const CategoryScreen({super.key});
