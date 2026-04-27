@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:hunargah/screens/viewmodels/splash_controller.dart';
+import 'package:hunargah/auth/viewmodel/splash_controller.dart';
 
 class SplashScreen extends StatelessWidget {
   SplashScreen({super.key});

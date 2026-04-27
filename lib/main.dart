@@ -9,16 +9,16 @@ import 'package:hunargah/screens/dashboard/main_dashboard.dart';
 import 'package:hunargah/screens/courses/course_playlist_screen.dart';
 import 'package:hunargah/screens/settings/edit_profile_screen.dart';
 import 'package:hunargah/screens/onboarding/language_selector_screen.dart';
-import 'package:hunargah/auth/login_screen.dart';
+import 'package:hunargah/auth/view/login/login_screen.dart';
 import 'package:hunargah/screens/settings/notifications_screen.dart';
 import 'package:hunargah/screens/onboarding/onboarding_screen.dart';
 import 'package:hunargah/screens/privacy_terms/privacy_and_policy_screen.dart';
 import 'package:hunargah/screens/onboarding/profile_picture_screen.dart';
 import 'package:hunargah/screens/courses/quiz_dialog_screen.dart';
-import 'package:hunargah/screens/settings/settings_screen.dart';
-import 'package:hunargah/auth/signup_screen.dart';
+import 'package:hunargah/screens/view/settings_screen.dart';
+import 'package:hunargah/auth/view/signup/signup_screen.dart';
 import 'package:hunargah/screens/onboarding/skills_interested_screen.dart';
-import 'package:hunargah/screens/view/splash/splash_screen.dart';
+import 'package:hunargah/auth/view/splash/splash_screen.dart';
 import 'package:hunargah/screens/privacy_terms/terms_and_conditions_screen.dart';
 import 'package:hunargah/screens/explore/ustad_profile_screen.dart';
 import 'package:hunargah/screens/courses/video_player_screen.dart';
@@ -51,7 +51,6 @@ class MainApp extends StatelessWidget {
         debugShowCheckedModeBanner: false,
         navigatorObservers: [routeObserver],
         home: SplashScreen(),
-
         themeMode: themeController.themeMode.value,
 
         // Define the all routes
