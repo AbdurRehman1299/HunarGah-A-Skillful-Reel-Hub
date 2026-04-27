@@ -3,8 +3,8 @@ import 'package:get/get.dart';
 import 'package:hunargah/screens/viewmodels/dashboard_controller.dart';
 import 'package:hunargah/components/bottom_bar.dart';
 import 'package:hunargah/screens/dashboard/category_screen.dart';
-import 'package:hunargah/screens/dashboard/explore_screen.dart';
-import 'package:hunargah/screens/dashboard/learner_feed_screen.dart';
+import 'package:hunargah/screens/view/explore_screen.dart';
+import 'package:hunargah/screens/view/learner_feed_screen.dart';
 import 'package:hunargah/screens/dashboard/user_profile_screen.dart';
 
 class MainDashboard extends StatelessWidget {

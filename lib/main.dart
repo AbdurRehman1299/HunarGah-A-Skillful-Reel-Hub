@@ -5,7 +5,7 @@ import 'firebase_options.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:hunargah/screens/utils/route_observer.dart';
-import 'package:hunargah/screens/dashboard/main_dashboard.dart';
+import 'package:hunargah/screens/view/main_dashboard.dart';
 import 'package:hunargah/screens/courses/course_playlist_screen.dart';
 import 'package:hunargah/screens/settings/edit_profile_screen.dart';
 import 'package:hunargah/screens/onboarding/language_selector_screen.dart';
