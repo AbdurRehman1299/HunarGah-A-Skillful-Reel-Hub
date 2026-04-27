@@ -18,7 +18,7 @@ import 'package:hunargah/screens/courses/quiz_dialog_screen.dart';
 import 'package:hunargah/screens/settings/settings_screen.dart';
 import 'package:hunargah/auth/signup_screen.dart';
 import 'package:hunargah/screens/onboarding/skills_interested_screen.dart';
-import 'package:hunargah/auth/splash_screen.dart';
+import 'package:hunargah/screens/view/splash/splash_screen.dart';
 import 'package:hunargah/screens/privacy_terms/terms_and_conditions_screen.dart';
 import 'package:hunargah/screens/explore/ustad_profile_screen.dart';
 import 'package:hunargah/screens/courses/video_player_screen.dart';
@@ -28,7 +28,9 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   String? savedTheme = await SecureStorage.getTheme();
-  ThemeMode initialTheme = savedTheme == 'dark' ? ThemeMode.dark : ThemeMode.light;
+  ThemeMode initialTheme = savedTheme == 'dark'
+      ? ThemeMode.dark
+      : ThemeMode.light;
   Get.put(ThemeController(initialTheme: initialTheme));
 
   // Initialize Firebase with platform-specific options
@@ -45,48 +47,60 @@ class MainApp extends StatelessWidget {
 
     return Obx(() {
       return GetMaterialApp(
-      title: 'HunarGah',
-      debugShowCheckedModeBanner: false,
-      navigatorObservers: [routeObserver],
-      home: const SplashScreen(),
+        title: 'HunarGah',
+        debugShowCheckedModeBanner: false,
+        navigatorObservers: [routeObserver],
+        home: SplashScreen(),
 
-      themeMode: themeController.themeMode.value,
+        themeMode: themeController.themeMode.value,
 
-      // Define the all routes
-      getPages: [
-        GetPage(name: '/login', page: () => const LoginScreen()),
-        GetPage(name: '/signup', page: () => const SignupScreen()),
-        GetPage(name: '/terms', page: () => const TermsAndConditionsScreen()),
-        GetPage(name: '/privacy', page: () => const PrivacyPolicyScreen()),
-        GetPage(name: '/onboarding', page: () => const OnboardingScreen()),
-        GetPage(name: '/language', page: () => const LanguageSelectorScreen()),
-        GetPage(name: '/skills', page: () => const SkillsInterestedScreen()),
-        GetPage(name: '/profile-picture', page: () => const ProfilePictureScreen()),
-        GetPage(name: '/dashboard', page: () => const MainDashboard()),
-        GetPage(name: '/settings', page: () => const SettingsScreen()),
-        GetPage(name: '/edit-profile', page: () => const EditProfileScreen()),
-        GetPage(
+        // Define the all routes
+        getPages: [
+          GetPage(name: '/login', page: () => const LoginScreen()),
+          GetPage(name: '/signup', page: () => const SignupScreen()),
+          GetPage(name: '/terms', page: () => const TermsAndConditionsScreen()),
+          GetPage(name: '/privacy', page: () => const PrivacyPolicyScreen()),
+          GetPage(name: '/onboarding', page: () => const OnboardingScreen()),
+          GetPage(
+            name: '/language',
+            page: () => const LanguageSelectorScreen(),
+          ),
+          GetPage(name: '/skills', page: () => const SkillsInterestedScreen()),
+          GetPage(
+            name: '/profile-picture',
+            page: () => const ProfilePictureScreen(),
+          ),
+          GetPage(name: '/dashboard', page: () => const MainDashboard()),
+          GetPage(name: '/settings', page: () => const SettingsScreen()),
+          GetPage(name: '/edit-profile', page: () => const EditProfileScreen()),
+          GetPage(
             name: '/ustad-profile',
-            page: () => UstadProfileScreen(ustadId: Get.arguments as String)
+            page: () => UstadProfileScreen(ustadId: Get.arguments as String),
+          ),
+          GetPage(
+            name: '/course-playlist',
+            page: () => const CoursePlaylistScreen(),
+          ),
+          GetPage(name: '/video-player', page: () => const VideoPlayerScreen()),
+          GetPage(name: '/quiz', page: () => const QuizDialog()),
+          GetPage(
+            name: '/notification',
+            page: () => const NotificationsScreen(),
+          ),
+        ],
+        // Set theme to declare color one time
+        theme: ThemeData(
+          primaryColor: const Color(0xFF00897B),
+          useMaterial3: true,
+          brightness: Brightness.light,
         ),
-        GetPage(name: '/course-playlist', page: () => const CoursePlaylistScreen()),
-        GetPage(name: '/video-player', page: () => const VideoPlayerScreen()),
-        GetPage(name: '/quiz', page: () => const QuizDialog()),
-        GetPage(name: '/notification', page: () => const NotificationsScreen()),
-      ],
-      // Set theme to declare color one time
-      theme: ThemeData(
-      primaryColor: const Color(0xFF00897B),
-      useMaterial3: true,
-      brightness: Brightness.light
-      ),
 
-      darkTheme: ThemeData(
-      primaryColor: const Color(0xFF00897B),
-      useMaterial3: true,
-      brightness: Brightness.dark
-      )
+        darkTheme: ThemeData(
+          primaryColor: const Color(0xFF00897B),
+          useMaterial3: true,
+          brightness: Brightness.dark,
+        ),
       );
-      });
+    });
   }
 }
