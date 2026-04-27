@@ -1,6 +1,8 @@
 import 'package:get/get.dart';
 import 'package:hunargah/screens/security/secure_storage.dart';
 import 'package:hunargah/screens/theme/theme_controller.dart';
+import 'package:hunargah/screens/view/skill_category_view.dart';
+import 'package:hunargah/screens/view/ustad_profile_view.dart';
 import 'firebase_options.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
@@ -11,16 +13,14 @@ import 'package:hunargah/screens/view/edit_profile_view.dart';
 import 'package:hunargah/screens/onboarding/language_selector_screen.dart';
 import 'package:hunargah/auth/view/login/login_screen.dart';
 import 'package:hunargah/screens/settings/notifications_screen.dart';
-import 'package:hunargah/screens/onboarding/onboarding_screen.dart';
+import 'package:hunargah/screens/view/onboarding_screen.dart';
 import 'package:hunargah/screens/view/privacy_and_policy_view.dart';
 import 'package:hunargah/screens/onboarding/profile_picture_screen.dart';
 import 'package:hunargah/screens/courses/quiz_dialog_screen.dart';
 import 'package:hunargah/screens/view/settings_view.dart';
 import 'package:hunargah/auth/view/signup/signup_screen.dart';
-import 'package:hunargah/screens/onboarding/skills_interested_screen.dart';
 import 'package:hunargah/auth/view/splash/splash_screen.dart';
 import 'package:hunargah/screens/view/terms_and_conditions_view.dart';
-import 'package:hunargah/screens/explore/ustad_profile_screen.dart';
 import 'package:hunargah/screens/courses/video_player_screen.dart';
 
 void main() async {
