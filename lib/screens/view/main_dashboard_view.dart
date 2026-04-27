@@ -2,10 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:hunargah/screens/viewmodels/dashboard_viewmodel.dart';
 import 'package:hunargah/components/bottom_bar.dart';
-import 'package:hunargah/screens/view/category_screen.dart';
-import 'package:hunargah/screens/view/explore_screen.dart';
-import 'package:hunargah/screens/view/learner_feed_screen.dart';
-import 'package:hunargah/screens/view/user_profile_screen.dart';
+import 'package:hunargah/screens/view/category_view.dart';
+import 'package:hunargah/screens/view/explore_view.dart';
+import 'package:hunargah/screens/view/learner_feed_view.dart';
+import 'package:hunargah/screens/view/user_profile_view.dart';
 
 class MainDashboard extends StatelessWidget {
   const MainDashboard({super.key});
