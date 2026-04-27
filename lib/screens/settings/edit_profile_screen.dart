@@ -1,5 +1,10 @@
+import 'dart:convert';
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:hunargah/components/app_bar.dart';
+import 'package:hunargah/database/firebase_service.dart';
+import 'package:image_picker/image_picker.dart';
 
 class EditProfileScreen extends StatefulWidget {
   const EditProfileScreen({super.key});
@@ -10,12 +15,121 @@ class EditProfileScreen extends StatefulWidget {
 
 class _EditProfileScreenState extends State<EditProfileScreen> {
   // Controllers for the text fields
-  final TextEditingController _nameController = TextEditingController(
-    text: 'Alexander Thompson',
-  );
-  final TextEditingController _cityController = TextEditingController(
-    text: 'San Francisco, CA',
-  );
+  final TextEditingController _nameController = TextEditingController();
+  final TextEditingController _cityController = TextEditingController();
+
+  String? _base64Image;
+  File? _newImage;
+
+  bool _isLoading = true;
+  bool _isSaving = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadUserData();
+  }
+
+  // Fetch User's Data
+  Future<void> _loadUserData() async {
+    try {
+      final userData = await FirebaseService().getUserData();
+
+      if (userData != null) {
+        setState(() {
+          _nameController.text = userData['username'] ?? '';
+          _cityController.text = userData['city'] ?? '';
+          _base64Image = userData['profileImageUrl'];
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to load profile: $e')),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
+    }
+  }
+
+  Future<void> _pickImage() async {
+    final ImagePicker picker = ImagePicker();
+    try {
+      final XFile? pickedFile = await picker.pickImage(source: ImageSource.gallery, imageQuality: 80);
+      if (pickedFile != null) {
+        setState(() {
+          _newImage = File(pickedFile.path);
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to pick image: $e')),
+        );
+      }
+    }
+  }
+
+  // Save User's Data
+  Future<void> _saveUserData() async {
+    if (_nameController.text.trim().isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Name cannot be empty')),
+      );
+      return;
+    }
+
+    setState(() {
+      _isSaving = true;
+    });
+
+    String? finalBase64Image = _base64Image;
+    if (_newImage != null) {
+      List<int> imageBytes = await _newImage!.readAsBytes();
+      finalBase64Image = base64Encode(imageBytes);
+    }
+
+    final String? errorMessage = await FirebaseService().updateProfileDetails(
+      _nameController.text.trim(),
+      _cityController.text.trim(),
+      profileImageUrl: finalBase64Image,
+    );
+
+    if (mounted) {
+      setState(() {
+        _isSaving = false;
+      });
+
+      if (errorMessage == null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Profile updated successfully!')),
+        );
+        Navigator.pop(context);
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(errorMessage)),
+        );
+      }
+    }
+  }
+
+  ImageProvider? _getProfileImage() {
+    if (_newImage != null) {
+      return FileImage(_newImage!);
+    } else if (_base64Image != null && _base64Image!.isNotEmpty) {
+      try {
+        return MemoryImage(base64Decode(_base64Image!));
+      } catch (e) {
+        return null;
+      }
+    }
+    return const NetworkImage('https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=150&q=80');
+  }
 
   @override
   void dispose() {
@@ -27,21 +141,22 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   @override
   Widget build(BuildContext context) {
     final themeColor = Theme.of(context).primaryColor;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: isDark ? Colors.grey[900] : Colors.white,
       appBar: CustomAppBar(
         leading: IconButton(
-          icon: const Icon(
+          icon: Icon(
             Icons.arrow_back_ios_new,
-            color: Colors.black87,
+            color: isDark ? Colors.white : Colors.black87,
             size: 20,
           ),
           onPressed: () => Navigator.pop(context),
         ),
         title: 'Account Settings',
       ),
-      body: Column(
+      body: _isLoading ? Center(child: CircularProgressIndicator(color: themeColor)) : Column(
         children: [
           Expanded(
             child: SingleChildScrollView(
@@ -53,7 +168,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   // -- Profile Photo Section --
-                  profilePhotoSection(themeColor),
+                  profilePhotoSection(themeColor, isDark),
 
                   const SizedBox(height: 32),
 
@@ -61,12 +176,13 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                   _buildSectionHeader(
                     'Personal Identification',
                     'Update your display name as it appears to other members.',
+                    isDark,
                   ),
 
                   const SizedBox(height: 16),
 
                   // Name Input Card
-                  nameInput(),
+                  nameInput(isDark),
 
                   const SizedBox(height: 32),
 
@@ -74,17 +190,18 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                   _buildSectionHeader(
                     'Local Community',
                     'Setting your city helps us show you relevant local events.',
+                    isDark,
                   ),
 
                   const SizedBox(height: 16),
 
                   // Location Input Card
-                  locationInput(),
+                  locationInput(themeColor, isDark),
 
                   const SizedBox(height: 24),
 
                   // -- Info Alert Box --
-                  infoAlert(),
+                  infoAlert(themeColor, isDark),
 
                   const SizedBox(height: 20),
                 ],
@@ -93,23 +210,25 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
           ),
 
           // -- Save Button --
-          saveButton(themeColor),
+          saveButton(themeColor, isDark),
         ],
       ),
     );
   }
 
-  Container saveButton(Color themeColor) {
+  Container saveButton(Color themeColor, bool isDark) {
     return Container(
       padding: const EdgeInsets.all(24.0),
-      decoration: BoxDecoration(color: Colors.white),
+      decoration: BoxDecoration(color: isDark ? Colors.grey[900] : Colors.white),
       child: ElevatedButton.icon(
-        onPressed: () {
-          // Save logic here
-        },
-        icon: const Icon(Icons.save_outlined, color: Colors.white, size: 20),
-        label: const Text(
-          'Save Changes',
+        onPressed: _isSaving ? null : _saveUserData,
+        icon: _isSaving ? const SizedBox(
+            width: 20,
+            height: 20,
+            child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2)
+        ) : Icon(Icons.save_outlined, color: Colors.white, size: 20),
+        label: Text(
+          _isSaving ? 'Saving..' : 'Save Changes',
           style: TextStyle(
             color: Colors.white,
             fontSize: 16,
@@ -118,6 +237,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         ),
         style: ElevatedButton.styleFrom(
           backgroundColor: themeColor,
+          disabledBackgroundColor: themeColor.withValues(alpha: 0.6),
           minimumSize: const Size(double.infinity, 54),
           elevation: 0,
           shape: RoundedRectangleBorder(
@@ -128,23 +248,23 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     );
   }
 
-  Container infoAlert() {
+  Container infoAlert(Color themeColor, bool isDark) {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.blue[50],
+        color: isDark ? themeColor.withValues(alpha: 0.1) : themeColor,
         borderRadius: BorderRadius.circular(12),
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(Icons.info_outline, color: Colors.blue[400], size: 20),
+          Icon(Icons.info_outline, color: themeColor, size: 20),
           const SizedBox(width: 12),
           Expanded(
             child: Text(
               'Your name and city will be visible on your public profile. You can change these settings at any time in your privacy dashboard.',
               style: TextStyle(
-                color: Colors.blue[800],
+                color: themeColor,
                 fontSize: 12,
                 height: 1.5,
               ),
@@ -155,18 +275,19 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     );
   }
 
-  Container locationInput() {
+  Container locationInput(Color themeColor, bool isDark) {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: isDark ? Colors.grey[800] : Colors.white,
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.02),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
+          if (!isDark)
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.02),
+              blurRadius: 10,
+              offset: const Offset(0, 4),
+            ),
         ],
       ),
       child: Column(
@@ -174,12 +295,13 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         children: [
           Text(
             'City / Location',
-            style: TextStyle(color: Colors.grey[600], fontSize: 12),
+            style: TextStyle(color: isDark ? Colors.grey[400] : Colors.grey[600], fontSize: 12),
           ),
           const SizedBox(height: 8),
           _buildCustomTextField(
             controller: _cityController,
             icon: Icons.location_on_outlined,
+            isDark: isDark,
           ),
           const SizedBox(height: 16),
 
@@ -188,13 +310,13 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
             scrollDirection: Axis.horizontal,
             child: Row(
               children: [
-                _buildDetectLocationChip(),
+                _buildDetectLocationChip(themeColor, isDark),
                 const SizedBox(width: 8),
-                _buildStandardChip('London'),
+                _buildStandardChip('Lahore', isDark),
                 const SizedBox(width: 8),
-                _buildStandardChip('New York'),
+                _buildStandardChip('Karachi', isDark),
                 const SizedBox(width: 8),
-                _buildStandardChip('Paris'),
+                _buildStandardChip('Islamabad', isDark),
               ],
             ),
           ),
@@ -203,18 +325,19 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     );
   }
 
-  Container nameInput() {
+  Container nameInput(bool isDark) {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: isDark ? Colors.grey[800] : Colors.white,
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.02),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
+          if (!isDark)
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.02),
+              blurRadius: 10,
+              offset: const Offset(0, 4),
+            ),
         ],
       ),
       child: Column(
@@ -222,22 +345,23 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         children: [
           Text(
             'Full Name',
-            style: TextStyle(color: Colors.grey[600], fontSize: 12),
+            style: TextStyle(color: isDark ? Colors.grey[400] : Colors.grey[600], fontSize: 12),
           ),
           const SizedBox(height: 8),
           _buildCustomTextField(
             controller: _nameController,
             icon: Icons.person_outline,
+            isDark: isDark,
           ),
           const SizedBox(height: 12),
           Row(
             children: [
-              Icon(Icons.info_outline, size: 14, color: Colors.grey[500]),
+              Icon(Icons.info_outline, size: 14, color: isDark ? Colors.grey[400] : Colors.grey[500]),
               const SizedBox(width: 6),
               Text(
                 'Use your real name for verification purposes.',
                 style: TextStyle(
-                  color: Colors.grey[500],
+                  color: isDark ? Colors.grey[400] : Colors.grey[500],
                   fontSize: 11,
                   fontStyle: FontStyle.italic,
                 ),
@@ -249,76 +373,77 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     );
   }
 
-  Center profilePhotoSection(Color themeColor) {
+  Center profilePhotoSection(Color themeColor, bool isDark) {
     return Center(
-      child: Column(
-        children: [
-          Stack(
-            children: [
-              Container(
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  border: Border.all(
-                    color: themeColor.withValues(alpha: 0.3),
-                    width: 3,
-                  ),
-                ),
-                child: const CircleAvatar(
-                  radius: 45,
-                  backgroundImage: NetworkImage(
-                    'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=150&q=80',
-                  ),
-                ),
-              ),
-              Positioned(
-                bottom: 0,
-                right: 0,
-                child: Container(
-                  padding: const EdgeInsets.all(6),
+      child: GestureDetector(
+        onTap: _pickImage,
+        child: Column(
+          children: [
+            Stack(
+              children: [
+                Container(
                   decoration: BoxDecoration(
-                    color: themeColor,
                     shape: BoxShape.circle,
-                    border: Border.all(color: Colors.white, width: 2),
+                    border: Border.all(
+                      color: themeColor.withValues(alpha: 0.3),
+                      width: 3,
+                    ),
                   ),
-                  child: const Icon(
-                    Icons.camera_alt,
-                    color: Colors.white,
-                    size: 14,
+                  child: CircleAvatar(
+                    radius: 45,
+                    backgroundImage: _getProfileImage(),
                   ),
                 ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 12),
-          Text(
-            'Change Profile Photo',
-            style: TextStyle(
-              color: themeColor,
-              fontWeight: FontWeight.bold,
-              fontSize: 13,
+                Positioned(
+                  bottom: 0,
+                  right: 0,
+                  child: Container(
+                    padding: const EdgeInsets.all(6),
+                    decoration: BoxDecoration(
+                      color: themeColor,
+                      shape: BoxShape.circle,
+                      border: Border.all(color: isDark ? Colors.grey[900]! : Colors.white, width: 2),
+                    ),
+                    child: const Icon(
+                      Icons.camera_alt,
+                      color: Colors.white,
+                      size: 14,
+                    ),
+                  ),
+                ),
+              ],
             ),
-          ),
-        ],
+            const SizedBox(height: 12),
+            Text(
+              'Change Profile Photo',
+              style: TextStyle(
+                color: themeColor,
+                fontWeight: FontWeight.bold,
+                fontSize: 13,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
 
   // Reusable Widget: Build Header Section
 
-  Widget _buildSectionHeader(String title, String subtitle) {
+  Widget _buildSectionHeader(String title, String subtitle, bool isDark) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
           title,
-          style: const TextStyle(
+          style: TextStyle(
             fontSize: 16,
             fontWeight: FontWeight.bold,
-            color: Colors.black87,
+            color: isDark ? Colors.white : Colors.black87,
           ),
         ),
         const SizedBox(height: 4),
-        Text(subtitle, style: TextStyle(fontSize: 12, color: Colors.grey[600])),
+        Text(subtitle, style: TextStyle(fontSize: 12, color: isDark ? Colors.grey[400] : Colors.grey[600])),
       ],
     );
   }
@@ -327,26 +452,27 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   Widget _buildCustomTextField({
     required TextEditingController controller,
     required IconData icon,
+    required bool isDark,
   }) {
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: isDark ? Colors.grey[900] : Colors.white,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.grey[300]!),
+        border: Border.all(color: isDark ? Colors.grey[700]! : Colors.grey[300]!),
       ),
       child: TextField(
         controller: controller,
-        style: const TextStyle(
+        style: TextStyle(
           fontSize: 14,
           fontWeight: FontWeight.w500,
-          color: Colors.black87,
+          color: isDark ? Colors.white : Colors.black87,
         ),
         decoration: InputDecoration(
           border: InputBorder.none,
-          prefixIcon: Icon(icon, color: Colors.grey[500], size: 20),
+          prefixIcon: Icon(icon, color: isDark ? Colors.grey[400] : Colors.grey[500], size: 20),
           suffixIcon: Icon(
             Icons.check_circle_outline,
-            color: Colors.grey[800],
+            color: isDark ? Colors.grey[400] : Colors.grey[800],
             size: 18,
           ),
           contentPadding: const EdgeInsets.symmetric(vertical: 14),
@@ -356,23 +482,23 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   }
 
   // Reusable Widget: Detect Location Chip
-  Widget _buildDetectLocationChip() {
+  Widget _buildDetectLocationChip(Color themeColor, bool isDark) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       decoration: BoxDecoration(
-        color: Colors.blue[50],
+        color: themeColor.withValues(alpha: isDark ? 0.1 : 0.2),
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: Colors.blue[100]!),
+        border: Border.all(color: themeColor),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(Icons.near_me, size: 14, color: Colors.blue[600]),
+          Icon(Icons.near_me, size: 14, color: themeColor),
           const SizedBox(width: 6),
           Text(
             'Detect Current',
             style: TextStyle(
-              color: Colors.blue[600],
+              color: themeColor,
               fontSize: 12,
               fontWeight: FontWeight.bold,
             ),
@@ -383,20 +509,27 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   }
 
   // Reusable Widget: Standard Location Chip
-  Widget _buildStandardChip(String label) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      decoration: BoxDecoration(
-        color: Colors.grey[50],
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: Colors.grey[200]!),
-      ),
-      child: Text(
-        label,
-        style: TextStyle(
-          color: Colors.grey[700],
-          fontSize: 12,
-          fontWeight: FontWeight.w500,
+  Widget _buildStandardChip(String label, bool isDark) {
+    return InkWell(
+      onTap: () {
+        setState(() {
+          _cityController.text = label;
+        });
+      },
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        decoration: BoxDecoration(
+          color: isDark ? Colors.grey[900] : Colors.grey[50],
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: isDark ? Colors.grey[700]! : Colors.grey[200]!),
+        ),
+        child: Text(
+          label,
+          style: TextStyle(
+            color: isDark ? Colors.grey[300] : Colors.grey[700],
+            fontSize: 12,
+            fontWeight: FontWeight.w500,
+          ),
         ),
       ),
     );

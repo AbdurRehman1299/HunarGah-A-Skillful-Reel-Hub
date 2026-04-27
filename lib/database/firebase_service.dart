@@ -368,6 +368,28 @@ class FirebaseService {
     return _firestore.collection('users').doc(userId).get();
   }
 
+  // Save user's profile
+  Future<String?> updateProfileDetails(String fullName, String city, {String? profileImageUrl}) async {
+    try {
+      User? user = _auth.currentUser;
+      if (user != null) {
+        Map<String, dynamic> updateData = {
+          'username': fullName,
+          'city': city,
+        };
+
+        if (profileImageUrl != null) {
+          updateData['profileImageUrl'] = profileImageUrl;
+        }
+        await _firestore.collection('users').doc(user.uid).update(updateData);
+        return null;
+      }
+      return 'User session expired. Please log in again.';
+    } catch (e) {
+      return 'An unexpected error occurred: $e';
+    }
+  }
+
   // Fetch videos of specific Ustad
   Stream<QuerySnapshot> getVideosByUserId(String userId) {
     return _firestore
