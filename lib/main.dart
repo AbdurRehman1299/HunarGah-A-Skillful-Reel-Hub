@@ -1,8 +1,10 @@
+import 'package:get/get.dart';
+import 'package:hunargah/screens/security/secure_storage.dart';
+import 'package:hunargah/screens/theme/theme_controller.dart';
+import 'firebase_options.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:hunargah/screens/utils/route_observer.dart';
-import 'package:hunargah/security/secure_storage.dart';
-import 'firebase_options.dart';
 import 'package:hunargah/screens/dashboard/main_dashboard.dart';
 import 'package:hunargah/screens/courses/course_playlist_screen.dart';
 import 'package:hunargah/screens/settings/edit_profile_screen.dart';
@@ -21,22 +23,17 @@ import 'package:hunargah/screens/privacy_terms/terms_and_conditions_screen.dart'
 import 'package:hunargah/screens/explore/ustad_profile_screen.dart';
 import 'package:hunargah/screens/courses/video_player_screen.dart';
 
-final ValueNotifier<ThemeMode> themeNotifier = ValueNotifier(ThemeMode.light);
-
 void main() async {
   // Ensure Flutter bindings are initialized before running the app
   WidgetsFlutterBinding.ensureInitialized();
-  runApp(const MainApp());
 
   String? savedTheme = await SecureStorage.getTheme();
-  if (savedTheme == 'dark') {
-    themeNotifier.value = ThemeMode.dark;
-  } else {
-    themeNotifier.value = ThemeMode.light;
-  }
+  ThemeMode initialTheme = savedTheme == 'dark' ? ThemeMode.dark : ThemeMode.light;
+  Get.put(ThemeController(initialTheme: initialTheme));
 
   // Initialize Firebase with platform-specific options
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+  runApp(const MainApp());
 }
 
 class MainApp extends StatelessWidget {
@@ -44,54 +41,52 @@ class MainApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ValueListenableBuilder<ThemeMode>(
-      valueListenable: themeNotifier,
-      builder: (context, ThemeMode currentMode, child) {
-        return MaterialApp(
-          title: 'HunarGah',
-          debugShowCheckedModeBanner: false,
-          navigatorObservers: [routeObserver],
-          home: const SplashScreen(),
+    final themeController = Get.find<ThemeController>();
 
-          themeMode: currentMode,
-        
-          // Define the all routes
-          routes: {
-            '/login': (context) => const LoginScreen(),
-            '/signup': (context) => const SignupScreen(),
-            '/terms': (context) => const TermsAndConditionsScreen(),
-            '/privacy': (context) => const PrivacyPolicyScreen(),
-            '/onboarding': (context) => const OnboardingScreen(),
-            '/language': (context) => const LanguageSelectorScreen(),
-            '/skills': (context) => const SkillsInterestedScreen(),
-            '/profile-picture': (context) => const ProfilePictureScreen(),
-            '/dashboard': (context) => const MainDashboard(),
-            '/settings': (context) => const SettingsScreen(),
-            '/edit-profile': (context) => const EditProfileScreen(),
-            '/ustad-profile': (context) {
-              final args = ModalRoute.of(context)!.settings.arguments as String;
-              return UstadProfileScreen(ustadId: args);
-            },
-            '/course-playlist': (context) => const CoursePlaylistScreen(),
-            '/video-player': (context) => const VideoPlayerScreen(),
-            '/quiz': (context) => const QuizDialog(),
-            '/notification': (context) => const NotificationsScreen(),
-          },
-        
-          // Set theme to declare color one time
-          theme: ThemeData(
-            primaryColor: const Color(0xFF00897B),
-            useMaterial3: true,
-            brightness: Brightness.light
-          ),
+    return Obx(() {
+      return GetMaterialApp(
+      title: 'HunarGah',
+      debugShowCheckedModeBanner: false,
+      navigatorObservers: [routeObserver],
+      home: const SplashScreen(),
 
-          darkTheme: ThemeData(
-            primaryColor: const Color(0xFF00897B),
-            useMaterial3: true,
-            brightness: Brightness.dark
-          )
-        );
-      }
-    );
+      themeMode: themeController.themeMode.value,
+
+      // Define the all routes
+      getPages: [
+        GetPage(name: '/login', page: () => const LoginScreen()),
+        GetPage(name: '/signup', page: () => const SignupScreen()),
+        GetPage(name: '/terms', page: () => const TermsAndConditionsScreen()),
+        GetPage(name: '/privacy', page: () => const PrivacyPolicyScreen()),
+        GetPage(name: '/onboarding', page: () => const OnboardingScreen()),
+        GetPage(name: '/language', page: () => const LanguageSelectorScreen()),
+        GetPage(name: '/skills', page: () => const SkillsInterestedScreen()),
+        GetPage(name: '/profile-picture', page: () => const ProfilePictureScreen()),
+        GetPage(name: '/dashboard', page: () => const MainDashboard()),
+        GetPage(name: '/settings', page: () => const SettingsScreen()),
+        GetPage(name: '/edit-profile', page: () => const EditProfileScreen()),
+        GetPage(
+            name: '/ustad-profile',
+            page: () => UstadProfileScreen(ustadId: Get.arguments as String)
+        ),
+        GetPage(name: '/course-playlist', page: () => const CoursePlaylistScreen()),
+        GetPage(name: '/video-player', page: () => const VideoPlayerScreen()),
+        GetPage(name: '/quiz', page: () => const QuizDialog()),
+        GetPage(name: '/notification', page: () => const NotificationsScreen()),
+      ],
+      // Set theme to declare color one time
+      theme: ThemeData(
+      primaryColor: const Color(0xFF00897B),
+      useMaterial3: true,
+      brightness: Brightness.light
+      ),
+
+      darkTheme: ThemeData(
+      primaryColor: const Color(0xFF00897B),
+      useMaterial3: true,
+      brightness: Brightness.dark
+      )
+      );
+      });
   }
 }
