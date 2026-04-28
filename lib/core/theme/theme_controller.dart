@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:hunargah/screens/security/secure_storage.dart';
+import 'package:hunargah/security/secure_storage.dart';
 
 class ThemeController extends GetxController {
   Rx<ThemeMode> themeMode = ThemeMode.light.obs;
