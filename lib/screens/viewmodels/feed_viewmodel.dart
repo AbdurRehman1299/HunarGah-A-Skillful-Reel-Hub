@@ -202,23 +202,16 @@ class VideoItemController extends GetxController {
                 stream: FirebaseFirestore.instance
                     .collection('videos')
                     .doc(video.id)
-                    .collection(
-                      'comments',
-                    ) // Adjust this if your collection is named differently
-                    .orderBy(
-                      'timestamp',
-                      descending: true,
-                    ) // Assuming you have a timestamp field
+                    .collection('comments')
+                    .orderBy('timestamp', descending: true)
                     .snapshots(),
                 builder: (context, snapshot) {
-                  // 1. Show loading indicator while fetching
                   if (snapshot.connectionState == ConnectionState.waiting) {
                     return Center(
                       child: CircularProgressIndicator(color: themeColor),
                     );
                   }
 
-                  // 2. Handle empty state
                   if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
                     return Center(
                       child: Text(
@@ -230,7 +223,6 @@ class VideoItemController extends GetxController {
                     );
                   }
 
-                  // 3. Display the list of comments
                   final comments = snapshot.data!.docs;
 
                   return ListView.builder(
@@ -240,11 +232,9 @@ class VideoItemController extends GetxController {
                       final commentData =
                           comments[index].data() as Map<String, dynamic>;
 
-                      // Map your Firestore fields here. Adjust the keys based on how you save them!
                       final String text =
                           commentData['text'] ?? commentData['comment'] ?? '';
                       final String username = commentData['username'] ?? 'User';
-                      // You can add profile pictures here if you store them
 
                       return Padding(
                         padding: const EdgeInsets.only(bottom: 16.0),

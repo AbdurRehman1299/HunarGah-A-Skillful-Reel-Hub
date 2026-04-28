@@ -1,7 +1,6 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:hunargah/bottom_sheets/filter_bottom_sheet.dart';
 import 'package:hunargah/components/app_bar.dart';
 import 'package:hunargah/screens/model/ustad_model.dart';
 import 'package:hunargah/screens/viewmodels/explore_viewmodel.dart';
@@ -20,13 +19,9 @@ class ExploreScreen extends StatelessWidget {
       backgroundColor: isDark ? Colors.grey[900] : Colors.white,
       appBar: const CustomAppBar(title: 'Explore'),
       floatingActionButton: FloatingActionButton(
-        onPressed: () => Get.bottomSheet(
-          const FilterBottomSheet(),
-          isScrollControlled: true,
-          backgroundColor: Colors.transparent,
-        ),
+        onPressed: () => controller.showFilterSheet(context),
         backgroundColor: themeColor,
-        child: Icon(Icons.tune, color: isDark ? Colors.white : Colors.black),
+        child: Icon(Icons.tune, color: Colors.white),
       ),
 
       body: SingleChildScrollView(
