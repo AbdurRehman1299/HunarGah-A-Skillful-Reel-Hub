@@ -1,27 +1,27 @@
 import 'package:get/get.dart';
-import 'package:hunargah/screens/security/secure_storage.dart';
-import 'package:hunargah/screens/theme/theme_controller.dart';
-import 'package:hunargah/screens/view/skill_category_view.dart';
-import 'package:hunargah/screens/view/ustad_profile_view.dart';
+import 'package:hunargah/security/secure_storage.dart';
+import 'package:hunargah/core/theme/theme_controller.dart';
+import 'package:hunargah/view/onboarding/skill_category_view.dart';
+import 'package:hunargah/view/profile/ustad_profile_view.dart';
 import 'firebase_options.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
-import 'package:hunargah/screens/utils/route_observer.dart';
-import 'package:hunargah/screens/view/main_dashboard_view.dart';
-import 'package:hunargah/screens/courses/course_playlist_screen.dart';
-import 'package:hunargah/screens/view/edit_profile_view.dart';
-import 'package:hunargah/screens/onboarding/language_selector_screen.dart';
+import 'package:hunargah/core/utils/route_observer.dart';
+import 'package:hunargah/view/home/main_dashboard_view.dart';
+import 'package:hunargah/view/video/course_playlist_screen.dart';
+import 'package:hunargah/view/setting/edit_profile_view.dart';
+import 'package:hunargah/view/onboarding/language_selector_screen.dart';
 import 'package:hunargah/auth/view/login/login_screen.dart';
-import 'package:hunargah/screens/settings/notifications_screen.dart';
-import 'package:hunargah/screens/view/onboarding_screen.dart';
-import 'package:hunargah/screens/view/privacy_and_policy_view.dart';
-import 'package:hunargah/screens/onboarding/profile_picture_screen.dart';
-import 'package:hunargah/screens/courses/quiz_dialog_screen.dart';
-import 'package:hunargah/screens/view/settings_view.dart';
+import 'package:hunargah/view/notifications/notifications_screen.dart';
+import 'package:hunargah/view/onboarding/onboarding_screen.dart';
+import 'package:hunargah/view/rules/privacy_and_policy_view.dart';
+import 'package:hunargah/view/onboarding/profile_picture_screen.dart';
+import 'package:hunargah/view/video/quiz_dialog_screen.dart';
+import 'package:hunargah/view/setting/settings_view.dart';
 import 'package:hunargah/auth/view/signup/signup_screen.dart';
 import 'package:hunargah/auth/view/splash/splash_screen.dart';
-import 'package:hunargah/screens/view/terms_and_conditions_view.dart';
-import 'package:hunargah/screens/courses/video_player_screen.dart';
+import 'package:hunargah/view/rules/terms_and_conditions_view.dart';
+import 'package:hunargah/view/video/video_player_screen.dart';
 
 void main() async {
   // Ensure Flutter bindings are initialized before running the app

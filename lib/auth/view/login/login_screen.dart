@@ -1,7 +1,7 @@
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:hunargah/components/app_bar.dart';
+import 'package:hunargah/view/components/app_bar.dart';
 import 'package:hunargah/auth/viewmodel/login_controller.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -20,7 +20,7 @@ class _LoginScreenState extends State<LoginScreen> {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: isDark ? Colors.grey[900] : Colors.white,
       appBar: CustomAppBar(
         title: 'Login',
         actions: [
