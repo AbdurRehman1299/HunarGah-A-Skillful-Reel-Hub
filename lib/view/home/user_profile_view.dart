@@ -33,8 +33,21 @@ class UserProfileScreen extends StatelessWidget {
         ],
       ),
       body: Obx(() {
-        if (controller.isLoading.value || controller.user.value == null) {
+        if (controller.isLoading.value) {
           return Center(child: CircularProgressIndicator(color: themeColor));
+        }
+
+        if (controller.user.value == null) {
+          return Center(
+            child: Text(
+              'No user logged in',
+              style: TextStyle(
+                fontSize: 16,
+                color: isDark ? Colors.grey[400] : Colors.grey[600],
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          );
         }
 
         final user = controller.user.value!;

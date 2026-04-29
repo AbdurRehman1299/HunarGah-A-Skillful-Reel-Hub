@@ -20,7 +20,6 @@ class LearnerFeedScreen extends StatelessWidget {
       backgroundColor: Colors.black,
       body: Stack(
         children: [
-          // 1. The Clean Feed
           Obx(() {
             if (feedController.isLoading.value) {
               return Center(
