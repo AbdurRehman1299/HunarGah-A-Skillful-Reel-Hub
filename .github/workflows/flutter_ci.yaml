@@ -2,13 +2,15 @@ name: Hunargah CI/CD Pipeline
 
 on:
   push:
-    branches["main"]
+    branches:
+      - main
   pull_request:
-    branches["main"]
+    branches:
+      - main
 
 jobs:
   build:
-    runs_on: ubuntu-latest
+    runs-on: ubuntu-latest
 
     steps:
       - name: Checkout code
