@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:hunargah/database/firebase_service.dart';
@@ -58,12 +59,12 @@ class UstadProfileController extends GetxController {
     if (data == null ||
         data.profileImageUrl == null ||
         data.profileImageUrl!.isEmpty) {
-      return const NetworkImage('https://i.pravatar.cc/150?img=11');
+      return CachedNetworkImageProvider('https://i.pravatar.cc/150?img=11');
     }
 
     String imageString = data.profileImageUrl!;
     if (imageString.startsWith('http')) {
-      return NetworkImage(imageString);
+      return CachedNetworkImageProvider(imageString);
     } else {
       try {
         final String cleanBase64 = imageString.contains(',')
@@ -71,7 +72,7 @@ class UstadProfileController extends GetxController {
             : imageString;
         return MemoryImage(base64Decode(cleanBase64));
       } catch (e) {
-        return const NetworkImage('https://i.pravatar.cc/150?img=11');
+        return CachedNetworkImageProvider('https://i.pravatar.cc/150?img=11');
       }
     }
   }

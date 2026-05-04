@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:hunargah/view/components/app_bar.dart';
@@ -304,7 +305,7 @@ class UstadProfileScreen extends StatelessWidget {
       width: double.infinity,
       decoration: BoxDecoration(
         image: DecorationImage(
-          image: NetworkImage(ustad.coverUrl),
+          image: CachedNetworkImageProvider(ustad.coverUrl),
           fit: BoxFit.cover,
         ),
       ),
@@ -369,7 +370,7 @@ class UstadProfileScreen extends StatelessWidget {
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(8),
           image: DecorationImage(
-            image: NetworkImage(
+            image: CachedNetworkImageProvider(
               video['thumbnailUrl'] ??
                   'https://images.unsplash.com/photo-1509391366360-2e959784a276?auto=format&fit=crop&w=300&q=80',
             ),

@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:hunargah/model/video_model.dart';
@@ -243,7 +244,7 @@ class VideoItemController extends GetxController {
                           children: [
                             const CircleAvatar(
                               radius: 16,
-                              backgroundImage: NetworkImage(
+                              backgroundImage: CachedNetworkImageProvider(
                                 'https://i.pravatar.cc/150?img=11',
                               ), // Placeholder avatar
                             ),
@@ -298,7 +299,7 @@ class VideoItemController extends GetxController {
                 children: [
                   const CircleAvatar(
                     radius: 18,
-                    backgroundImage: NetworkImage(
+                    backgroundImage: CachedNetworkImageProvider(
                       'https://i.pravatar.cc/150?img=11',
                     ),
                   ),

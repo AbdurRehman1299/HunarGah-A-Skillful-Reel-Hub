@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:hunargah/model/video_model.dart';
@@ -281,7 +282,9 @@ class VideoFeedItem extends StatelessWidget {
         children: [
           const CircleAvatar(
             radius: 24,
-            backgroundImage: NetworkImage('https://i.pravatar.cc/150?img=11'),
+            backgroundImage: CachedNetworkImageProvider(
+              'https://i.pravatar.cc/150?img=11',
+            ),
           ),
           Positioned(
             bottom: 0,

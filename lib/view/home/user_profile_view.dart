@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -581,7 +582,7 @@ class UserProfileScreen extends StatelessWidget {
               color: isDark ? Colors.grey[800] : Colors.grey[200],
               image: video['thumbnailUrl'] != null
                   ? DecorationImage(
-                      image: NetworkImage(video['thumbnailUrl']),
+                      image: CachedNetworkImageProvider(video['thumbnailUrl']),
                       fit: BoxFit.cover,
                     )
                   : null,

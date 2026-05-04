@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:hunargah/model/user_model.dart';
@@ -143,7 +144,7 @@ class EditProfileController extends GetxController {
         return null;
       }
     }
-    return const NetworkImage(
+    return CachedNetworkImageProvider(
       'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=150&q=80',
     );
   }

@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:hunargah/view/components/app_bar.dart';
@@ -153,14 +154,14 @@ class SettingsScreen extends StatelessWidget {
     bool isDark,
   ) {
     final data = controller.userData;
-    ImageProvider imageProvider = const NetworkImage(
+    ImageProvider imageProvider = CachedNetworkImageProvider(
       'https://i.pravatar.cc/150?img=11',
     );
 
     String? imgStr = data['profileImageUrl'];
     if (imgStr != null && imgStr.isNotEmpty) {
       if (imgStr.startsWith('http')) {
-        imageProvider = NetworkImage(imgStr);
+        imageProvider = CachedNetworkImageProvider(imgStr);
       } else {
         try {
           imageProvider = MemoryImage(base64Decode(imgStr.split(',').last));

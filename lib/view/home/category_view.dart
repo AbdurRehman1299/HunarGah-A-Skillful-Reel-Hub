@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:hunargah/view/components/app_bar.dart';
@@ -232,7 +233,7 @@ class CategoryScreen extends StatelessWidget {
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(16),
         image: const DecorationImage(
-          image: NetworkImage(
+          image: CachedNetworkImageProvider(
             'https://images.unsplash.com/photo-1509391366360-2e959784a276?auto=format&fit=crop&w=800&q=80',
           ),
           fit: BoxFit.cover,

@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:hunargah/view/components/app_bar.dart';
@@ -58,7 +59,7 @@ class CoursePlaylistScreen extends StatelessWidget {
       width: double.infinity,
       decoration: const BoxDecoration(
         image: DecorationImage(
-          image: NetworkImage(
+          image: CachedNetworkImageProvider(
             'https://images.unsplash.com/photo-1509391366360-2e959784a276?auto=format&fit=crop&w=800&q=80',
           ),
           fit: BoxFit.cover,
@@ -200,7 +201,9 @@ class CoursePlaylistScreen extends StatelessWidget {
         children: [
           const CircleAvatar(
             radius: 20,
-            backgroundImage: NetworkImage('https://i.pravatar.cc/150?img=11'),
+            backgroundImage: CachedNetworkImageProvider(
+              'https://i.pravatar.cc/150?img=11',
+            ),
           ),
           const SizedBox(width: 12),
           Expanded(
