@@ -1,5 +1,5 @@
 name: hunargah
-description: "A new Flutter project."
+description: A cross-platform microlearning app featuring a vertical video feed, interactive quizzes, ustad profiles, and many more.
 # The following line prevents the package from being accidentally published to
 # pub.dev using `flutter pub publish`. This is preferred for private packages.
 publish_to: 'none' # Remove this line if you wish to publish to pub.dev
@@ -45,7 +45,7 @@ dependencies:
   visibility_detector:
   flutter_secure_storage:
   get:
-  cached_network_image: ^3.4.1
+  cached_network_image:
 
 dev_dependencies:
   flutter_test:
