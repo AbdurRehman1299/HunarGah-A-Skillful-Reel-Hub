@@ -55,7 +55,7 @@ jobs:
           path: build/app/outputs/flutter-apk/Hunargah-v${{ env.APP_VERSION }}.apk
 
       - name: Create GitHub Release
-        uses: softprops/actions-gh-release@v2
+        uses: softprops/action-gh-release@v2
         with:
           tag_name: v${{ env.APP_VERSION }}
           name: Hunargah v${{ env.APP_VERSION }} - Beta Release
