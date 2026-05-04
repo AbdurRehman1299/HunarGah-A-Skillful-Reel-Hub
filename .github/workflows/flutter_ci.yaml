@@ -11,6 +11,8 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    permissions: 
+      contents: write
 
     steps:
       - name: Checkout code
@@ -51,3 +53,11 @@ jobs:
         with:
           name: Hunargah-v${{ env.APP_VERSION }}
           path: build/app/outputs/flutter-apk/Hunargah-v${{ env.APP_VERSION }}.apk
+
+      - name: Create GitHub Release
+        uses: softprops/actions-gh-release@v2
+        with:
+          tag_name: v${{ env.APP_VERSION }}
+          name: Hunargah v${{ env.APP_VERSION }} - Beta Release
+          files: build/app/outputs/flutter-apk/Hunargah-v${{ env.APP_VERSION }}.apk
+          generate_release_notes: true
