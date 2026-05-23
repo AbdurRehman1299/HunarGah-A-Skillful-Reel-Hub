@@ -1,6 +1,6 @@
 # 📱 Hunargah - A Skillful Reel Hub
 
-Hunargah is a cross-platform mobile application built with Flutter that bridges the gap between modern, fast-paced media and structured education. By utilizing a continuous-scroll vertical video feed (similar to popular social media platforms), Hunargah provides a distraction-free, engaging environment for microlearning and skill acquisition. 
+Hunargah is a cross-platform mobile application built with Flutter that bridges the gap between modern, fast-paced media and structured education. By utilizing a continuous-scroll vertical video feed (similar to popular social media platforms), Hunargah provides a distraction-free, engaging environment for microlearning and skill acquisition.
 
 ## ✨ Key Features
 
@@ -23,6 +23,7 @@ Hunargah is a cross-platform mobile application built with Flutter that bridges 
 ## 🏗️ System Architecture
 
 Hunargah strictly follows the **MVVM (Model-View-ViewModel)** architectural pattern to ensure a scalable and maintainable codebase:
+
 * **Model:** Dart classes representing real-world data (Users, Videos, Comments) synced with Firebase.
 * **View:** "Dumb" Flutter UI components that only handle displaying data and capturing user interactions.
 * **ViewModel (GetX Controllers):** The connective tissue that fetches data from Firebase, processes logic, and instantly updates the Views without rebuilding the entire screen.
@@ -33,15 +34,27 @@ The app strictly follows the MVVM architectural pattern using GetX to ensure sca
 
 ```text
 lib/
+├── auth/                   # Authentication (e.g., Login, Registration, Splash Screen)
+│   ├── view/
+│   │   ├── login/
+│   │   ├── signup/
+│   │   └── splash/
+│   └── viewmodel/
 ├── core/                   # Global constants, app theme, and shared utilities
+│   ├── themes/
+│   └── utils/
 ├── database/               # Firebase services and API calls
-├── models/                 # Data Models (e.g., UserModel, Lesson, QuizOption)
-├── controllers/            # ViewModels (e.g., UserProfileController, QuizController)
-├── views/                  # UI Screens (StatelessWidgets)
-│   ├── onboarding/         # Login, Registration, Profile Setup
-│   ├── dashboard/          # Main Home Layout
-│   ├── course/             # Playlist, Video Player
-│   ├── profile/            # User Profile, Edit Profile, Settings
-│   └── components/         # Reusable widgets (CustomAppBar, Buttons)
+├── security/               # Flutter Secure Storage for Sessions
+├── model/                  # Data Models (e.g., UserModel, Lesson, QuizOption)
+├── viewmodel/              # ViewModels (e.g., Edit Profile ViewModel, Dashboard ViewModel)
+├── view/                   # UI Screens (StatelessWidgets)
+│   ├── components/         # Reusable widgets (CustomAppBar, Buttons)
+│   ├── home/               # Main Home Layout
+│   ├── notifications/      # In-App Notifications
+│   ├── onboarding/         # Profile Setup  
+│   ├── profile/            # User Profile, Edit Profile
+│   ├── rules/              # Terms & Privacy Policy
+│   ├── setting/            # App's Settings
+│   └── video/              # Playlist, Video Player
 └── main.dart               # App entry point & GetX route definitions
 ```
